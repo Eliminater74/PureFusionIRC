@@ -525,6 +525,11 @@ public sealed partial class IrcSession
             return Task.CompletedTask;
         }
 
+        if (ISupport.ContainsKey("WHOX"))
+        {
+            return SendRawAsync("WHO " + channel + " %cuhnfal", cancellationToken);
+        }
+
         return SendRawAsync("WHO " + channel, cancellationToken);
     }
 
@@ -552,7 +557,44 @@ public sealed partial class IrcSession
 
     private void HandleWhoX(IrcMessage message)
     {
-        // Idle fields filled in the WHOX follow-up.
+        string? channel = null;
+        string? nick = null;
+        string? flags = null;
+        int? idle = null;
+        for (var i = 0; i < message.Parameters.Count; i++)
+        {
+            var part = message.Parameters[i];
+            if (channel is null && part.Length > 0 && part[0] is '#' or '&')
+            {
+                channel = part;
+                continue;
+            }
+
+            if (flags is null && part.Length > 0 && (part[0] is 'H' or 'G'))
+            {
+                flags = part;
+                if (i > 0)
+                {
+                    nick = message.Parameters[i - 1];
+                }
+
+                continue;
+            }
+
+            if (int.TryParse(part, out var seconds) && seconds >= 0)
+            {
+                idle = seconds;
+            }
+        }
+
+        if (string.IsNullOrEmpty(channel) || string.IsNullOrEmpty(nick) || flags is null)
+        {
+            return;
+        }
+
+        var buffer = GetOrCreate(BufferKind.Channel, channel);
+        var prefixes = NickEntry.NormalizePrefixes(flags);
+        buffer.ApplyPresence(nick, flags.Contains('G'), idle, prefixes.Length > 0 ? prefixes : null);
     }
 
     private void HandleAwayNotify(IrcMessage message)
@@ -586,7 +628,16 @@ public sealed partial class IrcSession
 
     private void HandleWhoisIdle(IrcMessage message)
     {
-        // Idle seconds applied in the idle follow-up.
+        var nick = message[1];
+        if (string.IsNullOrEmpty(nick) || !int.TryParse(message[2], out var idle))
+        {
+            return;
+        }
+
+        foreach (var buffer in Buffers.Where(b => b.Kind == BufferKind.Channel))
+        {
+            buffer.ApplyPresence(nick, idleSeconds: idle);
+        }
     }
 
     private void HandleISupport(IrcMessage message)
