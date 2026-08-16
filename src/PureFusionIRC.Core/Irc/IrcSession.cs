@@ -57,9 +57,8 @@ public sealed partial class IrcSession : IAsyncDisposable
         Settings = settings;
         Theme = theme;
         CurrentNick = network.NickOverride is { Length: > 0 } n ? n : identity.Nick;
-        ServerBuffer = GetOrCreate(BufferKind.Server, network.Name);
         Commands = new CommandProcessor();
-        Buffers.Add(ServerBuffer);
+        ServerBuffer = GetOrCreate(BufferKind.Server, network.Name);
     }
 
     public string Id { get; }
@@ -87,6 +86,9 @@ public sealed partial class IrcSession : IAsyncDisposable
     public event EventHandler<ThemeRequestEventArgs>? ThemeRequested;
     public event EventHandler<string>? RawSent;
     public event EventHandler<string>? RawReceived;
+
+    /// <summary>WPF dispatcher context. Inbound parsing hops here so ObservableCollections stay single-threaded.</summary>
+    public SynchronizationContext? Synchronization { get; set; }
 
     public IrcBuffer GetOrCreate(BufferKind kind, string name)
     {
@@ -259,7 +261,7 @@ public sealed partial class IrcSession : IAsyncDisposable
                 RawReceived?.Invoke(this, line);
                 if (IrcMessage.TryParse(line, out var message))
                 {
-                    await HandleAsync(message, cancellationToken).ConfigureAwait(false);
+                    await InvokeOnUiAsync(() => HandleAsync(message, cancellationToken)).ConfigureAwait(false);
                 }
             }
         }
@@ -284,6 +286,29 @@ public sealed partial class IrcSession : IAsyncDisposable
     {
         State = state;
         StateChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private Task InvokeOnUiAsync(Func<Task> work)
+    {
+        if (Synchronization is null || ReferenceEquals(SynchronizationContext.Current, Synchronization))
+        {
+            return work();
+        }
+
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        Synchronization.Post(async _ =>
+        {
+            try
+            {
+                await work().ConfigureAwait(false);
+                completion.TrySetResult();
+            }
+            catch (Exception ex)
+            {
+                completion.TrySetException(ex);
+            }
+        }, null);
+        return completion.Task;
     }
 
     private bool IsHighlight(string text)

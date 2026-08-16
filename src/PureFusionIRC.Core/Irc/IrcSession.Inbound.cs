@@ -217,6 +217,11 @@ public sealed partial class IrcSession
 
     private async Task HandleAuthenticateAsync(IrcMessage message, CancellationToken cancellationToken)
     {
+        if (_saslDone)
+        {
+            return;
+        }
+
         if (message.Trailing == "+" || message[0] == "+")
         {
             var account = Network.SaslAccount ?? CurrentNick;
