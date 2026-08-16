@@ -70,6 +70,7 @@ public sealed class ClientRuntime : IAsyncDisposable
     public async Task<IrcSession> ConnectAsync(NetworkProfile network, CancellationToken cancellationToken = default)
     {
         var session = new IrcSession(Guid.NewGuid().ToString("N"), network, Document.App.Identity, Document.App, Theme);
+        session.Synchronization = SynchronizationContext.Current;
         session.ThemeRequested += (_, e) => ApplyTheme(e.ThemeId);
         session.LineAdded += (_, e) => ForwardScriptLine(session, e);
         session.StateChanged += (_, _) =>
