@@ -88,6 +88,7 @@ public sealed partial class IrcSession : IAsyncDisposable
     public event EventHandler<ThemeRequestEventArgs>? ThemeRequested;
     public event EventHandler<string>? RawSent;
     public event EventHandler<string>? RawReceived;
+    public event EventHandler? PersistRequested;
 
     /// <summary>WPF dispatcher context. Inbound parsing hops here so ObservableCollections stay single-threaded.</summary>
     public SynchronizationContext? Synchronization { get; set; }
@@ -123,6 +124,8 @@ public sealed partial class IrcSession : IAsyncDisposable
         Buffers.Remove(buffer);
         BufferClosed?.Invoke(this, buffer);
     }
+
+    public void Persist() => PersistRequested?.Invoke(this, EventArgs.Empty);
 
     public void Print(IrcBuffer buffer, ChatLineKind kind, string text, string? nick = null, bool self = false)
     {

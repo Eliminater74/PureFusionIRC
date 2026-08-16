@@ -64,6 +64,9 @@
                 <MenuItem Header="_Export settings…" Click="Export_Click"/>
                 <MenuItem Header="_Import settings…" Click="Import_Click"/>
             </MenuItem>
+            <MenuItem Header="_Channel" SubmenuOpened="ChannelMenu_Opened">
+                <MenuItem x:Name="AutoJoinChannelItem" Header="Auto-join this channel" IsCheckable="True" Click="ToggleAutoJoin_Click"/>
+            </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About PureFusionIRC" Click="About_Click"/>
             </MenuItem>
@@ -73,7 +76,10 @@
             <Button Content="Networks" MinWidth="96" Margin="8,6,4,6" Click="Networks_Click"/>
             <Button Content="Connect" MinWidth="96" Margin="4,6" Click="Connect_Click"/>
             <Button Content="Disconnect" MinWidth="96" Margin="4,6" Click="Disconnect_Click"/>
-            <Button Content="Options" MinWidth="96" Margin="4,6,8,6" Click="Options_Click"/>
+            <Button Content="Options" MinWidth="96" Margin="4,6" Click="Options_Click"/>
+            <Button x:Name="AutoJoinButton" Content="Auto-join" MinWidth="96" Margin="4,6,8,6"
+                    ToolTip="Add or remove the current channel from this network's auto-join list"
+                    Click="ToolbarAutoJoin_Click"/>
         </StackPanel>
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBarItem>
@@ -109,6 +115,12 @@
                            Foreground="{DynamicResource DimTextBrush}" FontSize="11"/>
                 <TreeView x:Name="BufferTree" SelectedItemChanged="BufferTree_SelectedItemChanged"
                           BorderThickness="0" Padding="4">
+                    <TreeView.ContextMenu>
+                        <ContextMenu Opened="BufferTreeMenu_Opened">
+                            <MenuItem x:Name="TreeAutoJoinItem" Header="Auto-join this channel"
+                                      IsCheckable="True" Click="ToggleAutoJoin_Click"/>
+                        </ContextMenu>
+                    </TreeView.ContextMenu>
                     <TreeView.ItemContainerStyle>
                         <Style TargetType="TreeViewItem">
                             <Setter Property="IsExpanded" Value="True"/>

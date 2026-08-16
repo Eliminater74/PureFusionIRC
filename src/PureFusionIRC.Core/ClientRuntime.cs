@@ -72,6 +72,7 @@ public sealed class ClientRuntime : IAsyncDisposable
         var session = new IrcSession(Guid.NewGuid().ToString("N"), network, Document.App.Identity, Document.App, Theme);
         session.Synchronization = SynchronizationContext.Current;
         session.ThemeRequested += (_, e) => ApplyTheme(e.ThemeId);
+        session.PersistRequested += (_, _) => Save();
         session.LineAdded += (_, e) => ForwardScriptLine(session, e);
         session.StateChanged += (_, _) =>
         {

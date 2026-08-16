@@ -1,5 +1,6 @@
 using PureFusionIRC.Core.Buffers;
 using PureFusionIRC.Core.Irc;
+using PureFusionIRC.Core.Models;
 using PureFusionIRC.Core.Theming;
 
 namespace PureFusionIRC.Core.Commands;
@@ -129,6 +130,7 @@ public sealed class CommandProcessor
         Register("echo", (c, _) => { c.Session.Print(c.Buffer, ChatLineKind.Info, c.Arguments); return Task.FromResult(CommandResult.Ok()); });
         Register("say", async (c, t) => { await c.Session.PrivmsgAsync(c.Buffer.Name, c.Arguments, t); return CommandResult.Ok(); });
         Register("hop", HopAsync, "cycle");
+        Register("autojoin", AutoJoinAsync, "ajoin");
         Register("umode", async (c, t) => { await c.Session.SendRawAsync("MODE " + c.Session.CurrentNick + " " + c.Arguments, t); return CommandResult.Ok(); });
         Register("motd", async (c, t) => { await c.Session.SendRawAsync("MOTD", t); return CommandResult.Ok(); });
         Register("lusers", async (c, t) => { await c.Session.SendRawAsync("LUSERS", t); return CommandResult.Ok(); });
@@ -397,4 +399,64 @@ public sealed class CommandProcessor
         await c.Session.SendRawAsync("JOIN " + c.Buffer.Name, t).ConfigureAwait(false);
         return CommandResult.Ok();
     }
+
+    private static Task<CommandResult> AutoJoinAsync(CommandContext c, CancellationToken _)
+    {
+        var network = c.Session.Network;
+        var args = c.Args;
+        if (args.Length == 0 || args[0] is "toggle")
+        {
+            if (c.Buffer.Kind != BufferKind.Channel)
+            {
+                return Task.FromResult(CommandResult.Fail("Usage: /autojoin [add|del|list] [#channel]"));
+            }
+
+            return ApplyAutoJoin(c, c.Buffer.Name, !network.HasAutoJoin(c.Buffer.Name));
+        }
+
+        var verb = args[0];
+        if (verb is "list" or "show")
+        {
+            var list = network.AutoJoin.Count == 0 ? "(none)" : string.Join(", ", network.AutoJoin);
+            return Task.FromResult(CommandResult.Ok("Auto-join on " + network.Name + ": " + list));
+        }
+
+        var named = args.Length > 1 ? args[1] : (LooksLikeChannel(verb) ? verb : null);
+        if (verb is "add" or "+")
+        {
+            named ??= c.Buffer.Kind == BufferKind.Channel ? c.Buffer.Name : null;
+            return string.IsNullOrEmpty(named)
+                ? Task.FromResult(CommandResult.Fail("Usage: /autojoin add [#channel]"))
+                : ApplyAutoJoin(c, named, true);
+        }
+
+        if (verb is "del" or "remove" or "rm" or "-")
+        {
+            named ??= c.Buffer.Kind == BufferKind.Channel ? c.Buffer.Name : null;
+            return string.IsNullOrEmpty(named)
+                ? Task.FromResult(CommandResult.Fail("Usage: /autojoin del [#channel]"))
+                : ApplyAutoJoin(c, named, false);
+        }
+
+        if (LooksLikeChannel(verb))
+        {
+            return ApplyAutoJoin(c, verb, true);
+        }
+
+        return Task.FromResult(CommandResult.Fail("Usage: /autojoin [add|del|list] [#channel]"));
+    }
+
+    private static Task<CommandResult> ApplyAutoJoin(CommandContext c, string channel, bool enable)
+    {
+        c.Session.Network.SetAutoJoin(channel, enable);
+        c.Session.Persist();
+        var name = NetworkProfile.AutoJoinChannelName(channel);
+        return Task.FromResult(CommandResult.Ok(
+            enable
+                ? "Added " + name + " to auto-join for " + c.Session.Network.Name
+                : "Removed " + name + " from auto-join for " + c.Session.Network.Name));
+    }
+
+    private static bool LooksLikeChannel(string value) =>
+        value.Length > 0 && value[0] is '#' or '&' or '+' or '!';
 }

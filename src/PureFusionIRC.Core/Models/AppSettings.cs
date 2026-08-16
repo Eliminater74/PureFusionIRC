@@ -38,6 +38,57 @@ public sealed class NetworkProfile
     [JsonIgnore]
     public ServerEntry PrimaryServer =>
         Servers.Count > 0 ? Servers[0] : new ServerEntry();
+
+    public bool HasAutoJoin(string channel)
+    {
+        var token = NormalizeAutoJoinName(channel);
+        return token.Length > 0 &&
+               AutoJoin.Any(entry => string.Equals(NormalizeAutoJoinName(entry), token, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public bool SetAutoJoin(string channel, bool enabled)
+    {
+        var token = NormalizeAutoJoinName(channel);
+        if (token.Length == 0)
+        {
+            return false;
+        }
+
+        if (enabled)
+        {
+            if (!HasAutoJoin(token))
+            {
+                AutoJoin.Add(token);
+            }
+
+            return true;
+        }
+
+        AutoJoin.RemoveAll(entry =>
+            string.Equals(NormalizeAutoJoinName(entry), token, StringComparison.OrdinalIgnoreCase));
+        return false;
+    }
+
+    public static string AutoJoinChannelName(string entry)
+    {
+        if (string.IsNullOrWhiteSpace(entry))
+        {
+            return string.Empty;
+        }
+
+        return entry.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)[0];
+    }
+
+    public static string NormalizeAutoJoinName(string entry)
+    {
+        var token = AutoJoinChannelName(entry);
+        if (token.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        return token[0] is '#' or '&' or '+' or '!' ? token : "#" + token;
+    }
 }
 
 public sealed class AppSettings

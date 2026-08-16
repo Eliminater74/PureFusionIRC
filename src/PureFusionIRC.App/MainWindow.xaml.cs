@@ -149,6 +149,7 @@ public partial class MainWindow : Window
         InputPrompt.Text = buffer.Kind == BufferKind.Channel ? buffer.Name : ">";
         RefreshPinnedBars();
         RefreshStatus();
+        RefreshAutoJoinUi();
     }
 
     private void OnBufferPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -330,6 +331,74 @@ public partial class MainWindow : Window
         _tray?.Dispose();
         _runtime.Save();
         _ = _runtime.DisposeAsync().AsTask();
+    }
+
+    private void ChannelMenu_Opened(object sender, RoutedEventArgs e)
+    {
+        var can = CanEditAutoJoin();
+        AutoJoinChannelItem.IsEnabled = can;
+        AutoJoinChannelItem.IsChecked = can && _session!.Network.HasAutoJoin(_buffer!.Name);
+    }
+
+    private void BufferTreeMenu_Opened(object sender, RoutedEventArgs e)
+    {
+        var can = CanEditAutoJoin();
+        TreeAutoJoinItem.IsEnabled = can;
+        TreeAutoJoinItem.IsChecked = can && _session!.Network.HasAutoJoin(_buffer!.Name);
+    }
+
+    private void ToggleAutoJoin_Click(object sender, RoutedEventArgs e)
+    {
+        if (!CanEditAutoJoin())
+        {
+            return;
+        }
+
+        var enable = sender is MenuItem { IsCheckable: true } item
+            ? item.IsChecked == true
+            : !_session!.Network.HasAutoJoin(_buffer!.Name);
+        ApplyAutoJoinPreference(enable);
+    }
+
+    private void ToolbarAutoJoin_Click(object sender, RoutedEventArgs e)
+    {
+        if (!CanEditAutoJoin())
+        {
+            MessageBox.Show(this, "Join a channel first, then use Auto-join.", "Auto-join",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        ApplyAutoJoinPreference(!_session!.Network.HasAutoJoin(_buffer!.Name));
+    }
+
+    private bool CanEditAutoJoin() =>
+        _session is not null && _buffer is { Kind: BufferKind.Channel };
+
+    private void ApplyAutoJoinPreference(bool enable)
+    {
+        if (!CanEditAutoJoin())
+        {
+            return;
+        }
+
+        _session!.Network.SetAutoJoin(_buffer!.Name, enable);
+        _runtime.Save();
+        RefreshAutoJoinUi();
+        _session.Print(_buffer, ChatLineKind.Info,
+            enable
+                ? "Added " + _buffer.Name + " to auto-join for " + _session.Network.Name
+                : "Removed " + _buffer.Name + " from auto-join for " + _session.Network.Name);
+    }
+
+    private void RefreshAutoJoinUi()
+    {
+        var can = CanEditAutoJoin();
+        var on = can && _session!.Network.HasAutoJoin(_buffer!.Name);
+        AutoJoinChannelItem.IsEnabled = can;
+        AutoJoinChannelItem.IsChecked = on;
+        AutoJoinButton.IsEnabled = can;
+        AutoJoinButton.Content = on ? "Auto-join ✓" : "Auto-join";
     }
 
     private void ToggleTree_Click(object sender, RoutedEventArgs e)

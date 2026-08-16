@@ -104,7 +104,7 @@ Switch from **View → Theme** or `/theme <id>`. Export/import themes with the r
 
 ## Commands (subset)
 
-`/server`, `/disconnect`, `/join`, `/part`, `/quit`, `/nick`, `/me`, `/msg`, `/query`, `/notice`, `/ctcp`, `/whois`, `/mode`, `/topic`, `/kick`, `/invite`, `/quote`, `/clear`, `/theme`, `/help`
+`/server`, `/disconnect`, `/join`, `/part`, `/quit`, `/nick`, `/me`, `/msg`, `/query`, `/notice`, `/ctcp`, `/whois`, `/mode`, `/topic`, `/kick`, `/invite`, `/quote`, `/clear`, `/theme`, `/autojoin`, `/help`
 
 Bare text is sent to the current channel or query. `//text` sends a line that starts with `/`.
 
