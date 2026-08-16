@@ -76,6 +76,7 @@ public sealed partial class IrcSession : IAsyncDisposable
     public ThemeDefinition Theme { get; set; }
     public CommandProcessor Commands { get; }
     public Dcc.DccEngine? Dcc { get; set; }
+    public Logging.BufferLogWriter? Logs { get; set; }
     public IPAddress? LocalAddress => _connection.LocalAddress;
     public string CurrentNick { get; private set; }
     public SessionState State { get; private set; } = SessionState.Disconnected;

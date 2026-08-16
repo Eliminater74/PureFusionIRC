@@ -141,6 +141,7 @@ public sealed class CommandProcessor
         Register("info", async (c, t) => { await c.Session.SendRawAsync("INFO", t); return CommandResult.Ok(); });
         Register("stats", async (c, t) => { await c.Session.SendRawAsync("STATS " + c.Arguments, t); return CommandResult.Ok(); });
         Register("dcc", DccAsync);
+        Register("log", LogAsync);
         Register("server", (_, _) => Task.FromResult(CommandResult.Fail("Use the Networks window (File → Networks) in this version.")));
     }
 
@@ -512,5 +513,31 @@ public sealed class CommandProcessor
         }
 
         return CommandResult.Fail("Usage: /dcc send <nick> <file>  |  /dcc list  |  /dcc cancel");
+    }
+
+    private static Task<CommandResult> LogAsync(CommandContext c, CancellationToken _)
+    {
+        if (c.Session.Logs is null)
+        {
+            return Task.FromResult(CommandResult.Fail("Logging is not available."));
+        }
+
+        var path = c.Session.Logs.PathFor(c.Session, c.Buffer);
+        if (c.Args.Length > 0 && c.Args[0] is "off" or "stop")
+        {
+            c.Session.Settings.LogBuffers = false;
+            c.Session.Persist();
+            return Task.FromResult(CommandResult.Ok("Stopped logging. Folder: " + c.Session.Logs.Root));
+        }
+
+        if (c.Args.Length > 0 && c.Args[0] is "on" or "start")
+        {
+            c.Session.Settings.LogBuffers = true;
+            c.Session.Persist();
+            return Task.FromResult(CommandResult.Ok("Logging on. This window: " + path));
+        }
+
+        var state = c.Session.Settings.LogBuffers ? "on" : "off";
+        return Task.FromResult(CommandResult.Ok("Logging is " + state + ". This window: " + path));
     }
 }

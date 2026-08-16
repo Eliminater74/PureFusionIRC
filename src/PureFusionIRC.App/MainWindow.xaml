@@ -62,6 +62,7 @@
                 <MenuItem Header="_Options…" Click="Options_Click"/>
                 <MenuItem Header="Reload s_cripts" Click="ReloadScripts_Click"/>
                 <MenuItem Header="Open scripts _folder" Click="OpenScripts_Click"/>
+                <MenuItem Header="Open _logs folder" Click="OpenLogs_Click"/>
                 <Separator/>
                 <MenuItem Header="_Export settings…" Click="Export_Click"/>
                 <MenuItem Header="_Import settings…" Click="Import_Click"/>

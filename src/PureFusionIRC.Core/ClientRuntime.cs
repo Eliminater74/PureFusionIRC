@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using PureFusionIRC.Core.Buffers;
 using PureFusionIRC.Core.Irc;
+using PureFusionIRC.Core.Logging;
 using PureFusionIRC.Core.Models;
 using PureFusionIRC.Core.Scripting;
 using PureFusionIRC.Core.Settings;
@@ -22,6 +23,7 @@ public sealed class ClientRuntime : IAsyncDisposable
         Plugins.Ensure();
         Document = Store.Load();
         Dcc = new Dcc.DccEngine(Store);
+        Logs = new BufferLogWriter(Store);
         Theme = Themes.Get(Document.App.ThemeId);
         Scripts.Error += (_, e) => LastScriptError = e.File + ": " + e.Message;
         Scripts.LoadDirectory(Store.ScriptsDir);
@@ -34,6 +36,7 @@ public sealed class ClientRuntime : IAsyncDisposable
     public JavascriptScriptHost Scripts { get; }
     public PluginFolder Plugins { get; }
     public Dcc.DccEngine Dcc { get; }
+    public BufferLogWriter Logs { get; }
     public ObservableCollection<IrcSession> Sessions { get; } = new();
     public string? LastScriptError { get; private set; }
 
@@ -73,10 +76,15 @@ public sealed class ClientRuntime : IAsyncDisposable
     {
         var session = new IrcSession(Guid.NewGuid().ToString("N"), network, Document.App.Identity, Document.App, Theme);
         session.Dcc = Dcc;
+        session.Logs = Logs;
         session.Synchronization = SynchronizationContext.Current;
         session.ThemeRequested += (_, e) => ApplyTheme(e.ThemeId);
         session.PersistRequested += (_, _) => Save();
-        session.LineAdded += (_, e) => ForwardScriptLine(session, e);
+        session.LineAdded += (_, e) =>
+        {
+            Logs.Write(session, e.Buffer, e.Line);
+            ForwardScriptLine(session, e);
+        };
         session.StateChanged += (_, _) =>
         {
             if (session.State == SessionState.Connected)
@@ -122,6 +130,7 @@ public sealed class ClientRuntime : IAsyncDisposable
     {
         await DisconnectAllAsync().ConfigureAwait(false);
         Dcc.Dispose();
+        Logs.Dispose();
         foreach (var session in Sessions)
         {
             await session.DisposeAsync().ConfigureAwait(false);

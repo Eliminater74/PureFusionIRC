@@ -20,7 +20,8 @@ PureFusionIRC is built in layers. Core (this milestone) is a usable Windows IRC 
 - Ident server (port 113) for networks that still want it
 - NickServ helper + SASL EXTERNAL / SCRAM when needed
 - Per-network encodings, reconnect/backoff polish, channel keys UI
-- Logging to disk (mIRC-style logs) with search
+- [x] Logging to disk (mIRC-style daily logs)
+- Find in buffer / search logs
 - Switchbar tabs in addition to the tree (mIRC can do both)
 - Spell-as-you-type optional, better URL/click handling
 - Sound/highlight rules, tray icon, balloon/toasts

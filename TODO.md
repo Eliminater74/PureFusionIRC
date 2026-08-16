@@ -47,6 +47,7 @@ Living list for the next review after core functionality. Strike items as they l
 
 - [ ] Broader parser/regression tests (malformed lines, huge tags)
 - [ ] UI tests where they pay off
+- [x] Chat logs to `%AppData%\PureFusionIRC\logs` (daily per channel)
 - [ ] Structured logging (file sink)
 - [ ] Crash dump + “copy debug info”
 - [ ] Code-signed release binaries

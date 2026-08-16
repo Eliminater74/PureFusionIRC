@@ -18,7 +18,7 @@
                     <CheckBox x:Name="ReconnectBox" Content="Reconnect if the server drops (after 5 failures use the next listed server)" Margin="0,0,0,8"/>
                     <CheckBox x:Name="HideJoinBox" Content="Hide join/part/quit" Margin="0,0,0,8"/>
                     <CheckBox x:Name="StripColorBox" Content="Strip mIRC color codes" Margin="0,0,0,8"/>
-                    <CheckBox x:Name="LogBox" Content="Log buffers to disk (folder is created; writer in a later milestone)" Margin="0,0,0,8"/>
+                    <CheckBox x:Name="LogBox" Content="Log channels and queries to disk (AppData\PureFusionIRC\logs)" Margin="0,0,0,8"/>
                     <CheckBox x:Name="MotdBox" Content="Show MOTD" Margin="0,0,0,12"/>
                     <Label Content="Tray"/>
                     <CheckBox x:Name="MinimizeTrayBox" Content="Minimize to tray" Margin="0,0,0,8"/>

@@ -542,6 +542,16 @@ public partial class MainWindow : Window
         });
     }
 
+    private void OpenLogs_Click(object sender, RoutedEventArgs e)
+    {
+        Directory.CreateDirectory(_runtime.Store.LogsDir);
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = _runtime.Store.LogsDir,
+            UseShellExecute = true
+        });
+    }
+
     private void Export_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new SaveFileDialog

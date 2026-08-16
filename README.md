@@ -104,7 +104,7 @@ Switch from **View → Theme** or `/theme <id>`. Export/import themes with the r
 
 ## Commands (subset)
 
-`/server`, `/disconnect`, `/join`, `/part`, `/quit`, `/nick`, `/me`, `/msg`, `/query`, `/notice`, `/ctcp`, `/whois`, `/mode`, `/topic`, `/kick`, `/invite`, `/quote`, `/clear`, `/theme`, `/autojoin`, `/dcc`, `/help`
+`/server`, `/disconnect`, `/join`, `/part`, `/quit`, `/nick`, `/me`, `/msg`, `/query`, `/notice`, `/ctcp`, `/whois`, `/mode`, `/topic`, `/kick`, `/invite`, `/quote`, `/clear`, `/theme`, `/autojoin`, `/dcc`, `/log`, `/help`
 
 Bare text is sent to the current channel or query. `//text` sends a line that starts with `/`.
 
@@ -121,6 +121,10 @@ Direct transfers (DCC SEND) go computer-to-computer. Reverse send is **on by def
 DCC CHAT is not implemented yet.
 
 Incoming files default to `%AppData%\PureFusionIRC\transfers\`.
+
+## Logs
+
+Chat is logged by default to `%AppData%\PureFusionIRC\logs\<network>\<yyyy-MM-dd>\<channel>.log` (UTF-8, timestamps, mIRC codes stripped). Queries and the server window get their own files. Turn it off in **Tools → Options → General**, open the folder from **Tools → Open logs folder**, or type `/log` for the current window's path (`/log off` / `/log on`).
 
 ## Updates and changelog
 
