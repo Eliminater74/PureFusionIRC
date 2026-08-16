@@ -169,7 +169,9 @@ public sealed partial class IrcSession : IAsyncDisposable
         string? messageId = null,
         string? replyId = null)
     {
-        var highlight = !self && IsHighlight(text);
+        var highlight = !self
+            && kind is ChatLineKind.Message or ChatLineKind.Action or ChatLineKind.Notice
+            && IsHighlight(text);
         var line = new ChatLine(at ?? DateTimeOffset.Now, kind, nick, text, buffer.Name, self, highlight, messageId, replyId);
         buffer.Append(line, Settings.MaxBufferLines);
         if (highlight)
