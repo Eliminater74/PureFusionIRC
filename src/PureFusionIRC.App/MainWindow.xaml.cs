@@ -830,9 +830,9 @@ public partial class MainWindow : Window
             };
         StatusLag.Text = _session?.State switch
         {
-            SessionState.Connecting => "Connecting",
-            SessionState.Registering => "Waiting (IRCnet proxy/ident scan)",
-            SessionState.Connected => $"Lag: {_session.Lag.TotalMilliseconds:0} ms",
+            SessionState.Connecting => "Connecting · " + _session.CurrentServer.Host,
+            SessionState.Registering => "Waiting · " + _session.CurrentServer.Host,
+            SessionState.Connected => $"Lag: {_session.Lag.TotalMilliseconds:0} ms · {_session.CurrentServer.Host}",
             _ => "Lag: —"
         };
         StatusUsers.Text = _buffer?.Kind == BufferKind.Channel ? $"{_buffer.UserCount} users" : "";

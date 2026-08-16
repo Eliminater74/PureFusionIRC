@@ -58,6 +58,7 @@ public sealed partial class IrcSession
             case IrcNumerics.Welcome:
                 CurrentNick = message[0] ?? CurrentNick;
                 _gotWelcome = true;
+                _failover.RecordSuccess();
                 SetState(SessionState.Connected);
                 Print(ServerBuffer, ChatLineKind.Server, message.Trailing ?? string.Empty);
                 await AfterWelcomeAsync(cancellationToken).ConfigureAwait(false);

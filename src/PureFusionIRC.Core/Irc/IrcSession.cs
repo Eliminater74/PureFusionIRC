@@ -48,11 +48,11 @@ public sealed partial class IrcSession : IAsyncDisposable
     private bool _saslDone;
     private long _lagSentUnixMs;
     private int _nickTries;
-    private int _serverIndex;
     private int _reconnectBusy;
     private CancellationTokenSource? _reconnectCts;
     private readonly List<string> _restoreJoins = new();
     private bool _gotWelcome;
+    private readonly ServerFailover _failover = new();
 
     public bool UserRequestedDisconnect { get; private set; }
 
@@ -94,7 +94,7 @@ public sealed partial class IrcSession : IAsyncDisposable
                 return new ServerEntry();
             }
 
-            var index = _serverIndex % Network.Servers.Count;
+            var index = _failover.Index % Network.Servers.Count;
             if (index < 0)
             {
                 index += Network.Servers.Count;
@@ -182,10 +182,7 @@ public sealed partial class IrcSession : IAsyncDisposable
         var endpoint = new IrcEndpoint(server.Host, server.Port, server.UseTls, server.AcceptInvalidCertificates);
         UserRequestedDisconnect = false;
         _gotWelcome = false;
-        if (Network.Servers.Count > 0)
-        {
-            _serverIndex = Math.Clamp(_serverIndex, 0, Network.Servers.Count - 1);
-        }
+        _failover.EnsureIndex(Network.Servers.Count);
 
         SetState(SessionState.Connecting);
         Print(ServerBuffer, ChatLineKind.Info, "Connecting to " + endpoint + " …");
@@ -198,6 +195,7 @@ public sealed partial class IrcSession : IAsyncDisposable
         {
             Print(ServerBuffer, ChatLineKind.Error, "Connect failed: " + ex.Message);
             SetState(SessionState.Disconnected);
+            NoteConnectFailure();
             throw;
         }
 
@@ -330,6 +328,11 @@ public sealed partial class IrcSession : IAsyncDisposable
                 Print(ServerBuffer, ChatLineKind.Info, _gotWelcome
                     ? $"Server closed the link. Rejoining {(_restoreJoins.Count == 0 ? "auto-join channels" : _restoreJoins.Count + " channel(s)")} on {CurrentServer.Host} in {delay} seconds…"
                     : $"Disconnected before login. Retrying {CurrentServer.Host} in {delay} seconds…");
+                if (!_gotWelcome)
+                {
+                    NoteConnectFailure();
+                }
+
                 ScheduleReconnect();
             }
         }
@@ -389,16 +392,26 @@ public sealed partial class IrcSession : IAsyncDisposable
                     await ConnectAsync().ConfigureAwait(false);
                     return;
                 }
-                catch (Exception ex) when (ex is SocketException or IOException or TimeoutException or AuthenticationException)
-                {
-                    Print(ServerBuffer, ChatLineKind.Error,
-                        "Reconnect failed: " + ex.Message + " — trying again.");
-                }
+                    catch (Exception ex) when (ex is SocketException or IOException or TimeoutException or AuthenticationException)
+                    {
+                        Print(ServerBuffer, ChatLineKind.Error,
+                            "Reconnect failed: " + ex.Message + " — trying again.");
+                    }
             }
         }
         finally
         {
             Interlocked.Exchange(ref _reconnectBusy, 0);
+        }
+    }
+
+    private void NoteConnectFailure()
+    {
+        if (_failover.RecordFailure(Network.Servers.Count))
+        {
+            Print(ServerBuffer, ChatLineKind.Info,
+                $"Failed {ServerFailover.FailuresBeforeNext} times. Switching to the next listed server for this network: {CurrentServer.Host}:{CurrentServer.Port}" +
+                (CurrentServer.UseTls ? " (TLS)" : string.Empty));
         }
     }
 

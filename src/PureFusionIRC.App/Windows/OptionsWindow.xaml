@@ -14,7 +14,7 @@
             <TabItem Header="General">
                 <StackPanel Margin="12">
                     <CheckBox x:Name="TimestampsBox" Content="Show timestamps" Margin="0,0,0,8"/>
-                    <CheckBox x:Name="ReconnectBox" Content="Reconnect on disconnect" Margin="0,0,0,8"/>
+                    <CheckBox x:Name="ReconnectBox" Content="Reconnect if the server drops (after 5 failures use the next listed server)" Margin="0,0,0,8"/>
                     <CheckBox x:Name="HideJoinBox" Content="Hide join/part/quit" Margin="0,0,0,8"/>
                     <CheckBox x:Name="StripColorBox" Content="Strip mIRC color codes" Margin="0,0,0,8"/>
                     <CheckBox x:Name="LogBox" Content="Log buffers to disk (folder is created; writer in a later milestone)" Margin="0,0,0,8"/>
