@@ -172,6 +172,8 @@ public sealed partial class IrcSession : IAsyncDisposable
         _saslDone = false;
         ISupport.Clear();
         SetState(SessionState.Registering);
+        Print(ServerBuffer, ChatLineKind.Info,
+            "TLS is up. Waiting for the server to finish login. IRCnet often scans ident/proxies here and can sit for up to a minute — that is the server, not a frozen client.");
         _runCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _readTask = Task.Run(() => ReadLoopAsync(_runCts.Token), CancellationToken.None);
 

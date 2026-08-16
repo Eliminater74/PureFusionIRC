@@ -432,8 +432,23 @@ public partial class MainWindow : Window
 
     private void RefreshStatus()
     {
-        StatusNick.Text = _session?.CurrentNick ?? "(not connected)";
-        StatusLag.Text = _session is { State: SessionState.Connected } ? $"Lag: {_session.Lag.TotalMilliseconds:0} ms" : "Lag: —";
+        StatusNick.Text = _session is null
+            ? "(not connected)"
+            : _session.State switch
+            {
+                SessionState.Connecting => "connecting…",
+                SessionState.Registering => "waiting for server…",
+                SessionState.Disconnecting => "disconnecting…",
+                SessionState.Disconnected => _session.CurrentNick + " (offline)",
+                _ => _session.CurrentNick
+            };
+        StatusLag.Text = _session?.State switch
+        {
+            SessionState.Connecting => "Connecting",
+            SessionState.Registering => "Waiting (IRCnet proxy/ident scan)",
+            SessionState.Connected => $"Lag: {_session.Lag.TotalMilliseconds:0} ms",
+            _ => "Lag: —"
+        };
         StatusUsers.Text = _buffer?.Kind == BufferKind.Channel ? $"{_buffer.UserCount} users" : "";
         StatusTopic.Text = _buffer?.Topic ?? _session?.Network.Name ?? "PureFusionIRC";
         if (_buffer is not null && _buffer.Kind == BufferKind.Channel)
