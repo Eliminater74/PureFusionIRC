@@ -1,0 +1,78 @@
+<Window x:Class="PureFusionIRC.App.Windows.NetworkWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Networks — PureFusionIRC"
+        Height="560" Width="820"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource WindowBackgroundBrush}">
+    <DockPanel Margin="10">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button x:Name="AddButton" Content="Add" Width="90" Margin="0,0,8,0" Click="AddButton_Click"/>
+            <Button x:Name="RemoveButton" Content="Remove" Width="90" Margin="0,0,8,0" Click="RemoveButton_Click"/>
+            <Button x:Name="SaveButton" Content="Save" Width="90" Margin="0,0,8,0" Click="SaveButton_Click"/>
+            <Button x:Name="ConnectButton" Content="Connect" Width="110" Margin="0,0,8,0" Click="ConnectButton_Click"/>
+            <Button Content="Close" Width="90" Click="Close_Click"/>
+        </StackPanel>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <DockPanel Grid.Column="0">
+                <TextBlock DockPanel.Dock="Top" Text="Network list" Margin="0,0,0,6" Foreground="{DynamicResource DimTextBrush}"/>
+                <ListBox x:Name="NetworkList" DisplayMemberPath="Name" SelectionChanged="NetworkList_SelectionChanged"/>
+            </DockPanel>
+            <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushKey}"/>
+            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                <Grid Margin="8,0,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Label Grid.Row="0" Content="Network name"/>
+                    <TextBox x:Name="NameBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,6"/>
+                    <Label Grid.Row="1" Content="Host"/>
+                    <TextBox x:Name="HostBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,6"/>
+                    <Label Grid.Row="2" Content="Port"/>
+                    <TextBox x:Name="PortBox" Grid.Row="2" Grid.Column="1" Margin="0,0,0,6"/>
+                    <Label Grid.Row="3" Content=""/>
+                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,6">
+                        <CheckBox x:Name="TlsBox" Content="TLS" Margin="0,0,16,0" IsChecked="True"/>
+                        <CheckBox x:Name="BadCertBox" Content="Allow invalid cert"/>
+                    </StackPanel>
+                    <Label Grid.Row="4" Content="Server password"/>
+                    <PasswordBox x:Name="ServerPassBox" Grid.Row="4" Grid.Column="1" Margin="0,0,0,6"/>
+                    <Label Grid.Row="5" Content="Nick override"/>
+                    <TextBox x:Name="NickBox" Grid.Row="5" Grid.Column="1" Margin="0,0,0,6"/>
+                    <Label Grid.Row="6" Content="Auto-join (comma)"/>
+                    <TextBox x:Name="AutoJoinBox" Grid.Row="6" Grid.Column="1" Margin="0,0,0,6"/>
+                    <Label Grid.Row="7" Content="SASL account"/>
+                    <TextBox x:Name="SaslUserBox" Grid.Row="7" Grid.Column="1" Margin="0,0,0,6"/>
+                    <Label Grid.Row="8" Content="SASL password"/>
+                    <PasswordBox x:Name="SaslPassBox" Grid.Row="8" Grid.Column="1" Margin="0,0,0,6"/>
+                    <Label Grid.Row="9" Content="NickServ password"/>
+                    <PasswordBox x:Name="NickServBox" Grid.Row="9" Grid.Column="1" Margin="0,0,0,6"/>
+                    <Label Grid.Row="10" Content="Global nick"/>
+                    <TextBox x:Name="GlobalNickBox" Grid.Row="10" Grid.Column="1" Margin="0,0,0,6"/>
+                    <Label Grid.Row="11" Content="Alt nick"/>
+                    <TextBox x:Name="AltNickBox" Grid.Row="11" Grid.Column="1" Margin="0,0,0,6"/>
+                    <Label Grid.Row="12" Content="Username"/>
+                    <TextBox x:Name="UserBox" Grid.Row="12" Grid.Column="1" Margin="0,0,0,6"/>
+                    <Label Grid.Row="13" Content="Real name"/>
+                    <TextBox x:Name="RealBox" Grid.Row="13" Grid.Column="1" Margin="0,0,0,6"/>
+                    <TextBlock Grid.Row="14" Grid.ColumnSpan="2" TextWrapping="Wrap" Margin="0,8,0,0"
+                               Foreground="{DynamicResource DimTextBrush}"
+                               Text="Identity fields apply to all networks. SASL PLAIN is sent when account and password are set. Passwords are stored with Windows DPAPI."/>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</Window>
