@@ -10,6 +10,12 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <AssemblyName>PureFusionIRC</AssemblyName>
+    <RootNamespace>PureFusionIRC.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationTitle>PureFusionIRC</ApplicationTitle>
+    <Description>Windows IRC client with an mIRC-style layout and a full theme engine.</Description>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
   </PropertyGroup>
 
 </Project>
