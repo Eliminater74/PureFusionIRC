@@ -66,7 +66,6 @@ public partial class ChatView : UserControl
 
     private void ScrollToEnd()
     {
-        Scroller.UpdateLayout();
-        Scroller.ScrollToVerticalOffset(double.MaxValue);
+        Document.Blocks.LastBlock?.BringIntoView();
     }
 }
