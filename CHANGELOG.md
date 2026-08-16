@@ -1,6 +1,21 @@
 # Changelog
 
-All notable changes to PureFusionIRC are listed here. Versions match GitHub Release tags (`v1.0.0-B2`).
+All notable changes to PureFusionIRC are listed here. Versions match GitHub Release tags (`v1.0.0-B3`).
+
+## 1.0.0-B3 — 2026-08-16
+
+Third public beta.
+
+### Added
+- Theme editor: **View → Theme → Edit theme…**, **Tools → Theme editor…**, and **Options → Edit colors…**. Click any swatch; the main window updates live. Save writes JSON under `%AppData%\PureFusionIRC\themes`
+
+### Fixed
+- Join, part, and topic lines no longer light up the mention bar just because they contain your nick
+- Built-in theme JSON is no longer overwritten on every startup, so color edits stick
+
+### Notes
+- Fonts stay in **Tools → Options**; colors are the new editor
+- DCC CHAT, DCC RESUME, and loadable plugin DLLs are still ahead
 
 ## 1.0.0-B2 — 2026-08-16
 

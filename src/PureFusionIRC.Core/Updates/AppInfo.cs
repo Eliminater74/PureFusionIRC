@@ -17,7 +17,7 @@ public static class AppInfo
         var info = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
         if (string.IsNullOrWhiteSpace(info))
         {
-            return assembly.GetName().Version?.ToString(3) ?? "1.0.0-B2";
+            return assembly.GetName().Version?.ToString(3) ?? "1.0.0-B3";
         }
 
         var plus = info.IndexOf('+');

@@ -5,7 +5,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string] $Version = "1.0.0-B2",
+    [string] $Version = "1.0.0-B3",
     [string] $Runtime = "win-x64",
     [switch] $SkipZip
 )

@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Version label without a leading v (example 1.0.0-B2)
+        description: Version label without a leading v (example 1.0.0-B3)
         required: false
-        default: "1.0.0-B2"
+        default: "1.0.0-B3"
       create_release:
         description: Create a GitHub Release for this version
         type: boolean

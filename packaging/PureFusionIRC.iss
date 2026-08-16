@@ -7,7 +7,7 @@
 #define MyAppExeName "PureFusionIRC.exe"
 
 #ifndef MyAppVersion
-  #define MyAppVersion "1.0.0-B2"
+  #define MyAppVersion "1.0.0-B3"
 #endif
 #ifndef MyAppNumericVersion
   #define MyAppNumericVersion "1.0.0.0"
