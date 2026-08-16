@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Version label without a leading v (example 1.0.0-B1)
+        description: Version label without a leading v (example 1.0.0-B2)
         required: false
-        default: "1.0.0-B1"
+        default: "1.0.0-B2"
       create_release:
         description: Create a GitHub Release for this version
         type: boolean
@@ -60,10 +60,8 @@ jobs:
             $version = $version.Trim().TrimStart("v")
           }
 
-          $prerelease = ($version -match "-").ToString().ToLowerInvariant()
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          "prerelease=$prerelease" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          Write-Host "Version $version (prerelease=$prerelease)"
+          Write-Host "Version $version"
 
       - name: Install Inno Setup
         run: choco install innosetup --no-progress -y
@@ -90,7 +88,8 @@ jobs:
           tag_name: v${{ steps.ver.outputs.version }}
           name: PureFusionIRC ${{ steps.ver.outputs.version }}
           draft: false
-          prerelease: ${{ steps.ver.outputs.prerelease == 'true' }}
+          prerelease: false
+          make_latest: true
           generate_release_notes: true
           body_path: CHANGELOG.md
           fail_on_unmatched_files: true

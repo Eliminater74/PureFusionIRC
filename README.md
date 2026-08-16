@@ -6,7 +6,7 @@ HexChat source in `TEMP/` is **reference only** and is gitignored. mIRC has no p
 
 ## Status
 
-**v1.0.0-B1 (beta 1).** Core client: connect over TCP or TLS, register, talk, join channels, nick list, commands, themes, settings import/export, JavaScript scripts, tray, reverse-first file transfers (DCC), and an Inno Setup installer. See [ROADMAP.md](ROADMAP.md) and [TODO.md](TODO.md) for what comes next (DCC chat, ident, fuller IRCv3, plugin DLLs).
+**v1.0.0-B2 (beta 2).** Windows IRC client: connect over TCP or TLS, identd, IRCv3 (replies, react, chat history, echo-message), talk, join channels, nick list, commands, themes, settings import/export, JavaScript scripts, tray, reverse-first file transfers (DCC), daily logs, and an Inno Setup installer. See [ROADMAP.md](ROADMAP.md) and [TODO.md](TODO.md) for what comes next (DCC chat, plugin DLLs).
 
 ## Requirements
 
@@ -40,7 +40,7 @@ Data lives under `%AppData%\PureFusionIRC\` (settings, networks, themes, scripts
 
 ## Installer (Inno Setup)
 
-GitHub Releases ship `PureFusionIRC-<version>-setup.exe` (self-contained x64) and a portable zip. The first public beta is **v1.0.0-B1**.
+GitHub Releases ship `PureFusionIRC-<version>-setup.exe` (self-contained x64) and a portable zip. Current beta is **v1.0.0-B2**.
 
 To build the setup locally, install [Inno Setup 6](https://jrsoftware.org/isinfo.php), then:
 
@@ -50,8 +50,8 @@ powershell -ExecutionPolicy Bypass -File packaging/build-installer.ps1
 
 Output:
 
-- `artifacts\installer\PureFusionIRC-1.0.0-B1-setup.exe`
-- `artifacts\portable\PureFusionIRC-1.0.0-B1-win-x64.zip`
+- `artifacts\installer\PureFusionIRC-1.0.0-B2-setup.exe`
+- `artifacts\portable\PureFusionIRC-1.0.0-B2-win-x64.zip`
 
 User settings stay in `%AppData%\PureFusionIRC\` and are not removed on uninstall.
 
@@ -59,14 +59,14 @@ User settings stay in `%AppData%\PureFusionIRC\` and are not removed on uninstal
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs tests on Windows, compiles the Inno installer, and can publish a GitHub Release.
 
-Push a version tag to cut a release (beta tags stay marked prerelease):
+Push a version tag to cut a release (published as the latest GitHub Release):
 
 ```powershell
-git tag v1.0.0-B1
+git tag v1.0.0-B2
 git push origin main --tags
 ```
 
-You can also run **Actions → Build and release → Run workflow**, keep version `1.0.0-B1`, and enable **Create a GitHub Release**.
+You can also run **Actions → Build and release → Run workflow**, keep version `1.0.0-B2`, and enable **Create a GitHub Release**.
 
 ## What it is trying to be
 
@@ -130,9 +130,9 @@ Chat is logged by default to `%AppData%\PureFusionIRC\logs\<network>\<yyyy-MM-dd
 
 **Help → What's new…** shows [CHANGELOG.md](CHANGELOG.md) for the installed build.
 
-**Help → Check for updates…** reads [GitHub Releases](https://github.com/Eliminater74/PureFusionIRC/releases), including betas like `v1.0.0-B1`. If a newer `PureFusionIRC-*-setup.exe` is posted, you can download it and run a silent Inno setup. That closes this copy, installs over Program Files, and launches the new build. Settings in `%AppData%\PureFusionIRC\` stay.
+**Help → Check for updates…** reads [GitHub Releases](https://github.com/Eliminater74/PureFusionIRC/releases), including betas like `v1.0.0-B2`. If a newer `PureFusionIRC-*-setup.exe` is posted, you can download it and run a silent Inno setup. That closes this copy, installs over Program Files, and launches the new build. Settings in `%AppData%\PureFusionIRC\` stay.
 
-Startup checks are on by default (**Tools → Options → General**). Future tags (`v1.0.0-B2`, …) are what the checker looks for — this first installer will report “up to date” until then.
+Startup checks are on by default (**Tools → Options → General**).
 
 ## Scripts
 
