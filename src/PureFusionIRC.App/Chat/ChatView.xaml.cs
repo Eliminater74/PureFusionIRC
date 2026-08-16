@@ -66,6 +66,6 @@ public partial class ChatView : UserControl
 
     private void ScrollToEnd()
     {
-        Document.Blocks.LastBlock?.BringIntoView();
+        ChatBox.ScrollToEnd();
     }
 }

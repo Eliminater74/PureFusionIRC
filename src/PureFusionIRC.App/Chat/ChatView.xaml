@@ -3,18 +3,28 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Border BorderBrush="{DynamicResource BorderBrushKey}" BorderThickness="1"
             Background="{DynamicResource ChatBackgroundBrush}">
-        <FlowDocumentScrollViewer x:Name="Scroller"
-                                  IsToolBarVisible="False"
-                                  VerticalScrollBarVisibility="Auto"
-                                  HorizontalScrollBarVisibility="Disabled"
-                                  Background="{DynamicResource ChatBackgroundBrush}">
+        <!-- IsDocumentEnabled lets hyperlinks receive clicks in a read-only box.
+             Clicks shell-open the default browser; they do not navigate inside the client. -->
+        <RichTextBox x:Name="ChatBox"
+                     IsReadOnly="True"
+                     IsDocumentEnabled="True"
+                     IsUndoEnabled="False"
+                     AcceptsTab="False"
+                     IsReadOnlyCaretVisible="False"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Disabled"
+                     BorderThickness="0"
+                     Padding="8,6"
+                     Background="{DynamicResource ChatBackgroundBrush}"
+                     Foreground="{DynamicResource PrimaryTextBrush}"
+                     CaretBrush="Transparent">
             <FlowDocument x:Name="Document"
                           FontFamily="{DynamicResource ThemeFontFamily}"
                           FontSize="13"
-                          PagePadding="8,6"
+                          PagePadding="0"
                           LineHeight="18"
                           Foreground="{DynamicResource PrimaryTextBrush}"
                           Background="{DynamicResource ChatBackgroundBrush}"/>
-        </FlowDocumentScrollViewer>
+        </RichTextBox>
     </Border>
 </UserControl>

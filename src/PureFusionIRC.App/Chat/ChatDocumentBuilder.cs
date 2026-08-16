@@ -1,6 +1,6 @@
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 using PureFusionIRC.App.Theming;
 using PureFusionIRC.Core.Buffers;
@@ -12,7 +12,6 @@ namespace PureFusionIRC.App.Chat;
 
 public static class ChatDocumentBuilder
 {
-    private static readonly Regex Url = new(@"https?://[^\s<>]+", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public static Paragraph Build(ChatLine line, ThemeDefinition theme, AppSettings settings)
     {
@@ -83,29 +82,24 @@ public static class ChatDocumentBuilder
     private static void AddPlainWithLinks(Paragraph paragraph, string text, SolidColorBrush brush, ThemeDefinition theme, TextStyle? style = null)
     {
         var last = 0;
-        foreach (Match match in Url.Matches(text))
+        foreach (var match in UrlMatcher.Find(text))
         {
             if (match.Index > last)
             {
                 paragraph.Inlines.Add(Styled(text[last..match.Index], brush, style));
             }
 
-            var link = new Hyperlink(new Run(match.Value))
+            var display = new Run(match.Display);
+            var link = new Hyperlink(display)
             {
-                NavigateUri = Uri.TryCreate(match.Value, UriKind.Absolute, out var uri) ? uri : null,
-                Foreground = Brush("LinkBrush", theme.Ui.Link)
+                Cursor = Cursors.Hand,
+                Foreground = Brush("LinkBrush", theme.Ui.Link),
+                TextDecorations = TextDecorations.Underline,
+                ToolTip = match.Navigate.AbsoluteUri,
+                Tag = match.Navigate
             };
-            link.RequestNavigate += (_, e) =>
-            {
-                try
-                {
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
-                }
-                catch
-                {
-                    // ignore failed open
-                }
-            };
+            // Do not set NavigateUri — that can route into a Frame. Always shell-open the system browser.
+            link.Click += OpenInDefaultBrowser;
             paragraph.Inlines.Add(link);
             last = match.Index + match.Length;
         }
@@ -113,6 +107,15 @@ public static class ChatDocumentBuilder
         if (last < text.Length)
         {
             paragraph.Inlines.Add(Styled(text[last..], brush, style));
+        }
+    }
+
+    private static void OpenInDefaultBrowser(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is Hyperlink { Tag: Uri uri })
+        {
+            UrlMatcher.Open(uri);
         }
     }
 
