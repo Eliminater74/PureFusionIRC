@@ -1,9 +1,92 @@
 ﻿<Application x:Class="PureFusionIRC.App.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:PureFusionIRC.App"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#000000"/>
+        <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#0A0A0A"/>
+        <SolidColorBrush x:Key="ChromeBackgroundBrush" Color="#111111"/>
+        <SolidColorBrush x:Key="ChatBackgroundBrush" Color="#000000"/>
+        <SolidColorBrush x:Key="InputBackgroundBrush" Color="#0D0D0D"/>
+        <SolidColorBrush x:Key="TreeBackgroundBrush" Color="#050505"/>
+        <SolidColorBrush x:Key="NickListBackgroundBrush" Color="#050505"/>
+        <SolidColorBrush x:Key="StatusBackgroundBrush" Color="#111111"/>
+        <SolidColorBrush x:Key="BorderBrushKey" Color="#2A2A2A"/>
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#F5F5F5"/>
+        <SolidColorBrush x:Key="DimTextBrush" Color="#A0A0A0"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#4FC3F7"/>
+        <SolidColorBrush x:Key="SelectionBrush" Color="#1565C0"/>
+        <SolidColorBrush x:Key="HighlightBrush" Color="#FF8A65"/>
+        <SolidColorBrush x:Key="SelfNickBrush" Color="#80CBC4"/>
+        <SolidColorBrush x:Key="OtherNickBrush" Color="#90CAF9"/>
+        <SolidColorBrush x:Key="ActionBrush" Color="#CE93D8"/>
+        <SolidColorBrush x:Key="LinkBrush" Color="#64B5F6"/>
+        <SolidColorBrush x:Key="ErrorBrush" Color="#EF9A9A"/>
+        <SolidColorBrush x:Key="JoinBrush" Color="#A5D6A7"/>
+        <SolidColorBrush x:Key="PartBrush" Color="#FFAB91"/>
+        <SolidColorBrush x:Key="ChannelBrush" Color="#FFE082"/>
+        <SolidColorBrush x:Key="QueryBrush" Color="#81D4FA"/>
+        <SolidColorBrush x:Key="UnreadBrush" Color="#81C784"/>
+        <SolidColorBrush x:Key="MentionBrush" Color="#FFCC80"/>
+        <FontFamily x:Key="ThemeFontFamily">Consolas</FontFamily>
+
+        <Style TargetType="Window">
+            <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style TargetType="Menu">
+            <Setter Property="Background" Value="{DynamicResource ChromeBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+        </Style>
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="Background" Value="{DynamicResource ChromeBackgroundBrush}"/>
+        </Style>
+        <Style TargetType="ToolBar">
+            <Setter Property="Background" Value="{DynamicResource ChromeBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+        </Style>
+        <Style TargetType="StatusBar">
+            <Setter Property="Background" Value="{DynamicResource StatusBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource DimTextBrush}"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource ChromeBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushKey}"/>
+            <Setter Property="Padding" Value="10,4"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushKey}"/>
+            <Setter Property="Padding" Value="6,4"/>
+        </Style>
+        <Style TargetType="PasswordBox">
+            <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushKey}"/>
+            <Setter Property="Padding" Value="6,4"/>
+        </Style>
+        <Style TargetType="ListBox">
+            <Setter Property="Background" Value="{DynamicResource PanelBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushKey}"/>
+        </Style>
+        <Style TargetType="TreeView">
+            <Setter Property="Background" Value="{DynamicResource TreeBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushKey}"/>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+        </Style>
+        <Style TargetType="Label">
+            <Setter Property="Foreground" Value="{DynamicResource DimTextBrush}"/>
+        </Style>
     </Application.Resources>
 </Application>
