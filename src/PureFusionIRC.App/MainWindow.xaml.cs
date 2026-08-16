@@ -52,10 +52,13 @@ public partial class MainWindow : Window
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         InputBox.Focus();
-        if (!File.Exists(_runtime.Store.SettingsPath) && _runtime.Sessions.Count == 0)
+        Dispatcher.BeginInvoke(() =>
         {
-            Networks_Click(this, new RoutedEventArgs());
-        }
+            if (_runtime.Sessions.Count == 0)
+            {
+                Networks_Click(this, new RoutedEventArgs());
+            }
+        }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
     }
 
     private void HookSession(IrcSession session)
