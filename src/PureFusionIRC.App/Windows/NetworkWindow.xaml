@@ -76,9 +76,12 @@
                     <PasswordBox x:Name="ServerPassBox" Grid.Row="6" Grid.Column="1" Margin="0,0,0,6"/>
                     <Label Grid.Row="7" Content="Nick override"/>
                     <TextBox x:Name="NickBox" Grid.Row="7" Grid.Column="1" Margin="0,0,0,6"/>
-                    <Label Grid.Row="8" Content="Auto-join (comma)"/>
+                    <Label Grid.Row="8" Content="Auto-join"/>
                     <StackPanel Grid.Row="8" Grid.Column="1" Margin="0,0,0,6">
-                        <TextBox x:Name="AutoJoinBox" Margin="0,0,0,6"/>
+                        <TextBox x:Name="AutoJoinBox" Margin="0,0,0,6"
+                                 ToolTip="Channel names, comma separated. #c-64 or c-64 both work."/>
+                        <TextBlock Text="Example: #c-64, #help  (the # is added if you omit it)"
+                                   Foreground="{DynamicResource DimTextBrush}" FontSize="11" Margin="0,0,0,6"/>
                         <CheckBox x:Name="ConnectStartupBox"
                                   Content="Auto-connect this network when PureFusionIRC starts"/>
                     </StackPanel>

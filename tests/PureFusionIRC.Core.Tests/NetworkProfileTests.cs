@@ -34,4 +34,11 @@ public sealed class NetworkProfileTests
         var joins = network.JoinTargets(["#secret", "#live"]);
         Assert.Equal(["#secret hunter2", "#live", "#lobby"], joins);
     }
+
+    [Fact]
+    public void ParseAutoJoinList_adds_hash_when_missing()
+    {
+        var list = NetworkProfile.ParseAutoJoinList(["c-64", "#help key"]);
+        Assert.Equal(["#c-64", "#help key"], list);
+    }
 }

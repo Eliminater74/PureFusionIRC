@@ -158,7 +158,7 @@ public sealed class CommandProcessor
             return CommandResult.Fail("Usage: /join #channel [key]");
         }
 
-        await c.Session.SendRawAsync("JOIN " + c.Arguments, t).ConfigureAwait(false);
+        await c.Session.SendRawAsync("JOIN " + NetworkProfile.NormalizeJoinSpec(c.Arguments), t).ConfigureAwait(false);
         return CommandResult.Ok();
     }
 

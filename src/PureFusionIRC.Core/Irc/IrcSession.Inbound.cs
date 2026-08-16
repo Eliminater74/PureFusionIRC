@@ -1,4 +1,5 @@
 using PureFusionIRC.Core.Buffers;
+using PureFusionIRC.Core.Models;
 
 namespace PureFusionIRC.Core.Irc;
 
@@ -689,9 +690,10 @@ public sealed partial class IrcSession
 
         foreach (var channel in joins)
         {
-            if (!string.IsNullOrWhiteSpace(channel))
+            var spec = NetworkProfile.NormalizeJoinSpec(channel);
+            if (!string.IsNullOrWhiteSpace(spec))
             {
-                await SendRawAsync("JOIN " + channel, cancellationToken).ConfigureAwait(false);
+                await SendRawAsync("JOIN " + spec, cancellationToken).ConfigureAwait(false);
             }
         }
     }

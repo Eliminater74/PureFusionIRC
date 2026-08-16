@@ -133,6 +133,35 @@ public sealed class NetworkProfile
 
         return token[0] is '#' or '&' or '+' or '!' ? token : "#" + token;
     }
+
+    /// <summary>Turns "c-64" or "#c-64 key" into a JOIN target the server will accept.</summary>
+    public static string NormalizeJoinSpec(string spec)
+    {
+        if (string.IsNullOrWhiteSpace(spec))
+        {
+            return string.Empty;
+        }
+
+        var parts = spec.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var name = NormalizeAutoJoinName(parts[0]);
+        if (name.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        return parts.Length > 1 ? name + " " + parts[1] : name;
+    }
+
+    public static List<string> ParseAutoJoinList(IEnumerable<string> entries)
+    {
+        var result = new List<string>();
+        foreach (var entry in entries)
+        {
+            AddJoinSpec(result, NormalizeJoinSpec(entry));
+        }
+
+        return result;
+    }
 }
 
 public sealed class AppSettings

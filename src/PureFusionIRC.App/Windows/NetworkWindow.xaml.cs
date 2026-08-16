@@ -119,7 +119,8 @@ public partial class NetworkWindow : Window
 
         _current.Servers = servers;
         _current.NickOverride = string.IsNullOrWhiteSpace(NickBox.Text) ? null : NickBox.Text.Trim();
-        _current.AutoJoin = AutoJoinBox.Text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+        _current.AutoJoin = NetworkProfile.ParseAutoJoinList(
+            AutoJoinBox.Text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
         _current.ConnectOnStartup = ConnectStartupBox.IsChecked == true;
         _current.SaslAccount = string.IsNullOrWhiteSpace(SaslUserBox.Text) ? null : SaslUserBox.Text.Trim();
         _current.SaslPassword = string.IsNullOrEmpty(SaslPassBox.Password) ? null : SaslPassBox.Password;
