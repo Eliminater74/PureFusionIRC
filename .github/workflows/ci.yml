@@ -92,6 +92,7 @@ jobs:
           draft: false
           prerelease: ${{ steps.ver.outputs.prerelease == 'true' }}
           generate_release_notes: true
+          body_path: CHANGELOG.md
           fail_on_unmatched_files: true
           files: |
             artifacts/installer/*.exe

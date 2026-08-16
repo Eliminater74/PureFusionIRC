@@ -161,6 +161,8 @@ public sealed class AppSettings
     public bool DccEnabled { get; set; } = true;
     public bool DccPreferReverse { get; set; } = true;
     public string DccDownloadFolder { get; set; } = "";
+    public bool CheckForUpdates { get; set; } = true;
+    public bool IncludePrereleaseUpdates { get; set; } = true;
     /// <summary>Bumped for one-time UI defaults (tray). Do not reuse NetworkListRevision.</summary>
     public int UiRevision { get; set; }
     /// <summary>Bumped when built-in country server lists change so AppData picks up new entries.</summary>

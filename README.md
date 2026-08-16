@@ -122,6 +122,14 @@ DCC CHAT is not implemented yet.
 
 Incoming files default to `%AppData%\PureFusionIRC\transfers\`.
 
+## Updates and changelog
+
+**Help → What's new…** shows [CHANGELOG.md](CHANGELOG.md) for the installed build.
+
+**Help → Check for updates…** reads [GitHub Releases](https://github.com/Eliminater74/PureFusionIRC/releases), including betas like `v1.0.0-B1`. If a newer `PureFusionIRC-*-setup.exe` is posted, you can download it and run a silent Inno setup. That closes this copy, installs over Program Files, and launches the new build. Settings in `%AppData%\PureFusionIRC\` stay.
+
+Startup checks are on by default (**Tools → Options → General**). Future tags (`v1.0.0-B2`, …) are what the checker looks for — this first installer will report “up to date” until then.
+
 ## Scripts
 
 Put `.pf.js` files in `%AppData%\PureFusionIRC\scripts\`. They get `irc.on`, `irc.command`, and `irc.print`. Example:

@@ -70,6 +70,9 @@
                 <MenuItem x:Name="AutoJoinChannelItem" Header="Auto-join this channel" IsCheckable="True" Click="ToggleAutoJoin_Click"/>
             </MenuItem>
             <MenuItem Header="_Help">
+                <MenuItem Header="_What's new…" Click="WhatsNew_Click"/>
+                <MenuItem Header="Check for _updates…" Click="CheckUpdates_Click"/>
+                <Separator/>
                 <MenuItem Header="_About PureFusionIRC" Click="About_Click"/>
             </MenuItem>
         </Menu>

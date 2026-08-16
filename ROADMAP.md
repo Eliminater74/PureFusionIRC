@@ -48,7 +48,9 @@ PureFusionIRC is built in layers. Core (this milestone) is a usable Windows IRC 
 - bouncer (ZNC/Soju) niceties
 - Multi-window / pop-out buffers (mIRC window habit)
 - Portable mode (settings beside the EXE)
-- Installer (MSIX or Inno) and auto-update
+- [x] Installer (Inno) and GitHub Releases
+- [x] In-app update check (download latest setup.exe)
+- Accessibility pass (high contrast, screen readers)
 - Accessibility pass (high contrast, screen readers)
 
 ## Non-goals

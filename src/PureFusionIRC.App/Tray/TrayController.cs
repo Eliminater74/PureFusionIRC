@@ -12,7 +12,7 @@ public sealed class TrayController : IDisposable
     private readonly NotifyIcon _icon;
     private readonly Icon _ownedIcon;
 
-    public TrayController(Action restore, Action openNetworks, Action exit)
+    public TrayController(Action restore, Action openNetworks, Action exit, Action? checkUpdates = null)
     {
         _ownedIcon = ExtractIcon();
         _icon = new NotifyIcon
@@ -29,6 +29,14 @@ public sealed class TrayController : IDisposable
             restore();
             openNetworks();
         });
+        if (checkUpdates is not null)
+        {
+            menu.Items.Add("Check for updates…", null, (_, _) =>
+            {
+                restore();
+                checkUpdates();
+            });
+        }
         menu.Items.Add("-");
         menu.Items.Add("Exit", null, (_, _) => exit());
         _icon.ContextMenuStrip = menu;

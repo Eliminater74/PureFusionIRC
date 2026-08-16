@@ -319,7 +319,7 @@ public sealed partial class IrcSession
         Print(ServerBuffer, ChatLineKind.Ctcp, $"CTCP {command} from {from}");
         var response = command.ToUpperInvariant() switch
         {
-            "VERSION" => "VERSION PureFusionIRC 1.0.0-B1",
+            "VERSION" => "VERSION PureFusionIRC " + PureFusionIRC.Core.Updates.AppInfo.GetVersion(),
             "TIME" => "TIME " + DateTime.Now.ToString("R"),
             "PING" => "PING " + args,
             "CLIENTINFO" => "CLIENTINFO VERSION TIME PING CLIENTINFO DCC",

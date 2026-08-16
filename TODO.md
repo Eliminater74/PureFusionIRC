@@ -7,6 +7,7 @@ Living list for the next review after core functionality. Strike items as they l
 - [ ] Identd listener for networks that still fingerprint ident
 - [ ] SASL SCRAM-SHA-256 and EXTERNAL
 - [x] DCC SEND (reverse-first) + incoming prompt + transfer window
+- [x] In-app update check + changelog + installer download
 - [ ] DCC CHAT
 - [ ] DCC RESUME / ACCEPT (partial-file UX)
 - [ ] Chathistory, batch, labeled-response, multiline, react (IRCv3)

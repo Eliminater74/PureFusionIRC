@@ -24,6 +24,8 @@ public partial class OptionsWindow : Window
         MinimizeTrayBox.IsChecked = app.MinimizeToTray;
         CloseTrayBox.IsChecked = app.CloseToTray;
         NotifyTrayBox.IsChecked = app.TrayNotifications;
+        UpdatesBox.IsChecked = app.CheckForUpdates;
+        PrereleaseBox.IsChecked = app.IncludePrereleaseUpdates;
         DccBox.IsChecked = app.DccEnabled;
         DccReverseBox.IsChecked = app.DccPreferReverse;
         DccFolderBox.Text = app.DccDownloadFolder;
@@ -49,6 +51,8 @@ public partial class OptionsWindow : Window
         app.MinimizeToTray = MinimizeTrayBox.IsChecked == true;
         app.CloseToTray = CloseTrayBox.IsChecked == true;
         app.TrayNotifications = NotifyTrayBox.IsChecked == true;
+        app.CheckForUpdates = UpdatesBox.IsChecked == true;
+        app.IncludePrereleaseUpdates = PrereleaseBox.IsChecked == true;
         app.DccEnabled = DccBox.IsChecked == true;
         app.DccPreferReverse = DccReverseBox.IsChecked == true;
         app.DccDownloadFolder = DccFolderBox.Text.Trim();

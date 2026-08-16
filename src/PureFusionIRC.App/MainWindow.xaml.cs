@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using System.IO;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -15,6 +14,7 @@ using PureFusionIRC.Core.Irc;
 using PureFusionIRC.Core.Models;
 using PureFusionIRC.Core.Text;
 using PureFusionIRC.Core.Theming;
+using PureFusionIRC.Core.Updates;
 
 namespace PureFusionIRC.App;
 
@@ -30,6 +30,8 @@ public partial class MainWindow : Window
     private bool _exitRequested;
     private TrayController? _tray;
     private TransfersWindow? _transfers;
+    private GitHubUpdateClient? _updateClient;
+    private UpdateWindow? _updateWindow;
 
     public AppSettings Settings => _runtime.Document.App;
 
@@ -58,7 +60,8 @@ public partial class MainWindow : Window
         _tray = new TrayController(
             () => Dispatcher.Invoke(RestoreFromTray),
             () => Dispatcher.Invoke(() => Networks_Click(this, new RoutedEventArgs())),
-            () => Dispatcher.Invoke(ExitFromTray));
+            () => Dispatcher.Invoke(ExitFromTray),
+            () => Dispatcher.Invoke(OpenUpdateChecker));
         StateChanged += (_, _) =>
         {
             if (WindowState == WindowState.Minimized && Settings.MinimizeToTray)
@@ -97,6 +100,8 @@ public partial class MainWindow : Window
         {
             Networks_Click(this, new RoutedEventArgs());
         }
+
+        _ = CheckUpdatesQuietAsync();
     }
 
     private void HookSession(IrcSession session)
@@ -568,8 +573,83 @@ public partial class MainWindow : Window
     private void About_Click(object sender, RoutedEventArgs e)
     {
         MessageBox.Show(this,
-            "PureFusionIRC " + GetProductVersion() + "\nWindows C# IRC client inspired by mIRC, with a full theme engine.\nDefault theme: AMOLED Black.\nScripts: JavaScript (.pf.js), not mIRC script.\n\nMIT License",
+            "PureFusionIRC " + GetProductVersion() +
+            "\nWindows C# IRC client inspired by mIRC, with a full theme engine.\nDefault theme: AMOLED Black.\nScripts: JavaScript (.pf.js), not mIRC script.\nUpdates: Help → Check for updates.\n\nMIT License",
             "About PureFusionIRC");
+    }
+
+    private void WhatsNew_Click(object sender, RoutedEventArgs e)
+    {
+        var window = new ChangelogWindow(GetProductVersion()) { Owner = this };
+        window.ShowDialog();
+        if (window.OpenUpdates)
+        {
+            OpenUpdateChecker();
+        }
+    }
+
+    private void CheckUpdates_Click(object sender, RoutedEventArgs e) => OpenUpdateChecker();
+
+    private void OpenUpdateChecker()
+    {
+        if (_updateWindow is not null)
+        {
+            _updateWindow.Activate();
+            return;
+        }
+
+        _updateWindow = new UpdateWindow(UpdateClient(), GetProductVersion(), Settings.IncludePrereleaseUpdates)
+        {
+            Owner = this
+        };
+        _updateWindow.Closed += (_, _) => _updateWindow = null;
+        _updateWindow.Show();
+        _updateWindow.Activate();
+    }
+
+    private GitHubUpdateClient UpdateClient() =>
+        _updateClient ??= new GitHubUpdateClient(GitHubUpdateClient.CreateHttp());
+
+    private async Task CheckUpdatesQuietAsync()
+    {
+        if (!Settings.CheckForUpdates)
+        {
+            return;
+        }
+
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(6)).ConfigureAwait(true);
+            if (!IsLoaded)
+            {
+                return;
+            }
+
+            var latest = await UpdateClient().GetLatestAsync(Settings.IncludePrereleaseUpdates).ConfigureAwait(true);
+            if (latest is null || !AppVersion.TryParse(GetProductVersion(), out var current) || !latest.IsNewerThan(current))
+            {
+                return;
+            }
+
+            _tray?.Notify("Update available", "PureFusionIRC " + latest.Version + " is on GitHub.", false);
+            if (_updateWindow is not null)
+            {
+                _updateWindow.ShowOffer(latest);
+                _updateWindow.Activate();
+                return;
+            }
+
+            _updateWindow = new UpdateWindow(UpdateClient(), GetProductVersion(), Settings.IncludePrereleaseUpdates, latest)
+            {
+                Owner = this
+            };
+            _updateWindow.Closed += (_, _) => _updateWindow = null;
+            _updateWindow.Show();
+        }
+        catch
+        {
+            // Startup check is silent if GitHub is unreachable.
+        }
     }
 
     private void BufferTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -926,16 +1006,5 @@ public partial class MainWindow : Window
         base.OnPreviewKeyDown(e);
     }
 
-    private static string GetProductVersion()
-    {
-        var info = typeof(App).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-            ?.InformationalVersion;
-        if (string.IsNullOrWhiteSpace(info))
-        {
-            return typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0-B1";
-        }
-
-        var plus = info.IndexOf('+');
-        return plus < 0 ? info : info[..plus];
-    }
+    private static string GetProductVersion() => AppInfo.GetVersion(typeof(App).Assembly);
 }
