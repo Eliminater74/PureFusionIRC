@@ -33,6 +33,19 @@
                     <TextBox x:Name="HighlightBox"/>
                 </StackPanel>
             </TabItem>
+            <TabItem Header="Files">
+                <StackPanel Margin="12">
+                    <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource DimTextBrush}" Margin="0,0,0,12"
+                               Text="Direct transfers (DCC) go computer-to-computer. Reverse mode is easier at home because the other side opens a port."/>
+                    <CheckBox x:Name="DccBox" Content="Allow sending and receiving files" Margin="0,0,0,8"/>
+                    <CheckBox x:Name="DccReverseBox" Content="Prefer reverse DCC (no port forwarding on your side)" Margin="0,0,0,12"/>
+                    <Label Content="Save incoming files to (blank = AppData\PureFusionIRC\transfers)"/>
+                    <DockPanel LastChildFill="True">
+                        <Button DockPanel.Dock="Right" Content="Browse…" Width="90" Margin="8,0,0,0" Click="BrowseFolder_Click"/>
+                        <TextBox x:Name="DccFolderBox"/>
+                    </DockPanel>
+                </StackPanel>
+            </TabItem>
             <TabItem Header="Identity">
                 <StackPanel Margin="12">
                     <Label Content="Nick"/>

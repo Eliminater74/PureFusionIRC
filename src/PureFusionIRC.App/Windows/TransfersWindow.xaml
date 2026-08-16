@@ -1,0 +1,53 @@
+<Window x:Class="PureFusionIRC.App.Windows.TransfersWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="File transfers — PureFusionIRC"
+        Height="480" Width="620"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource WindowBackgroundBrush}">
+    <DockPanel Margin="12">
+        <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="0,0,0,10"
+                   Foreground="{DynamicResource DimTextBrush}"
+                   Text="Direct file transfers go computer-to-computer (not through IRC). Reverse send is on by default so sending from home usually needs no port forwarding. Empty list: right-click a nick → Send file, or use the button below."/>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,10,0,0">
+            <Button Content="Send a file…" Width="120" Click="Send_Click"/>
+            <Button Content="Open download folder" Width="160" Margin="8,0,0,0" Click="Folder_Click"/>
+            <Button Content="Close" Width="90" Margin="8,0,0,0" IsCancel="True"/>
+        </StackPanel>
+        <ListBox x:Name="List" BorderThickness="1">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border Padding="10,8" Margin="0,0,0,6" Background="{DynamicResource PanelBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrushKey}" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Headline}" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource PrimaryTextBrush}"/>
+                            <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource DimTextBrush}">
+                                <Run Text="{Binding StatusLabel, Mode=OneWay}"/>
+                                <Run Text="  ·  "/>
+                                <Run Text="{Binding TransferredLabel, Mode=OneWay}"/>
+                                <Run Text="  "/>
+                                <Run Text="{Binding SpeedLabel, Mode=OneWay}"/>
+                                <Run Text="  "/>
+                                <Run Text="{Binding EtaLabel, Mode=OneWay}"/>
+                            </TextBlock>
+                            <ProgressBar Height="8" Margin="0,8,0,0" Maximum="1" Value="{Binding Progress, Mode=OneWay}"/>
+                            <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" Margin="0,6,0,0"
+                                       Foreground="{DynamicResource DimTextBrush}" FontSize="11"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Button Content="Save" Width="80" Click="SaveItem_Click" Tag="{Binding}"
+                                        IsEnabled="{Binding CanAccept}"/>
+                                <Button Content="Decline" Width="80" Margin="6,0,0,0" Click="DeclineItem_Click" Tag="{Binding}"
+                                        IsEnabled="{Binding CanAccept}"/>
+                                <Button Content="Cancel" Width="80" Margin="6,0,0,0" Click="CancelItem_Click" Tag="{Binding}"
+                                        IsEnabled="{Binding CanCancel}"/>
+                                <Button Content="Open" Width="80" Margin="6,0,0,0" Click="OpenItem_Click" Tag="{Binding}"
+                                        ToolTip="Open the saved file, or its folder"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</Window>

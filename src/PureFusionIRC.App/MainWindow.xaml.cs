@@ -10,6 +10,7 @@ using PureFusionIRC.App.Tray;
 using PureFusionIRC.App.Windows;
 using PureFusionIRC.Core;
 using PureFusionIRC.Core.Buffers;
+using PureFusionIRC.Core.Dcc;
 using PureFusionIRC.Core.Irc;
 using PureFusionIRC.Core.Models;
 using PureFusionIRC.Core.Text;
@@ -28,6 +29,7 @@ public partial class MainWindow : Window
     private bool _editingTopic;
     private bool _exitRequested;
     private TrayController? _tray;
+    private TransfersWindow? _transfers;
 
     public AppSettings Settings => _runtime.Document.App;
 
@@ -46,6 +48,7 @@ public partial class MainWindow : Window
         Chat.ReplyNick += InsertReplyPrefix;
         Chat.QueryNick += nick => _ = NickCommandFromChatAsync("/query {0}", nick);
         Chat.WhoisNick += nick => _ = NickCommandFromChatAsync("/whois {0}", nick);
+        _runtime.Dcc.IncomingOffer += (_, transfer) => Dispatcher.Invoke(() => OnIncomingFile(transfer));
         ShowTreeItem.IsChecked = _runtime.Document.App.ShowTree;
         ShowNicksItem.IsChecked = _runtime.Document.App.ShowNickList;
         ShowToolbarItem.IsChecked = _runtime.Document.App.ShowToolbar;
@@ -448,6 +451,73 @@ public partial class MainWindow : Window
         }
     }
 
+    private void Transfers_Click(object sender, RoutedEventArgs e) => ShowTransfers();
+
+    private void SendFile_Click(object sender, RoutedEventArgs e) => SendDccFile(null);
+
+    private void ShowTransfers()
+    {
+        if (_transfers is null)
+        {
+            _transfers = new TransfersWindow(_runtime) { Owner = this };
+            _transfers.SendFileRequested += () => SendDccFile(null);
+            _transfers.Closed += (_, _) => _transfers = null;
+        }
+
+        _transfers.Show();
+        _transfers.Activate();
+    }
+
+    private void OnIncomingFile(DccTransfer transfer)
+    {
+        RestoreFromTray();
+        ShowTransfers();
+        if (Settings.TrayNotifications)
+        {
+            _tray?.Notify(
+                "File from " + transfer.PeerNick,
+                transfer.FileName + " (" + DccParser.FormatBytes(transfer.FileSize) + ")",
+                IsVisible && IsActive && WindowState != WindowState.Minimized);
+        }
+
+        var prompt = new IncomingFileWindow(transfer, _runtime.Dcc.FolderFor(Settings)) { Owner = this };
+        if (prompt.ShowDialog() == true)
+        {
+            _runtime.Dcc.Accept(transfer);
+        }
+        else
+        {
+            _runtime.Dcc.Decline(transfer);
+        }
+    }
+
+    private async void SendDccFile(string? nick)
+    {
+        nick ??= _buffer?.Kind == BufferKind.Query ? _buffer.Name : SelectedNick();
+        if (string.IsNullOrWhiteSpace(nick) || _session is null)
+        {
+            MessageBox.Show(this, "Open a private chat or select a nick first.", "Send file",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var dialog = new OpenFileDialog { Title = "Send file to " + nick };
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            await _runtime.Dcc.SendFileAsync(_session, nick, dialog.FileName).ConfigureAwait(true);
+            ShowTransfers();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "Send file", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
     private void ReloadScripts_Click(object sender, RoutedEventArgs e)
     {
         _runtime.Scripts.LoadDirectory(_runtime.Store.ScriptsDir);
@@ -791,6 +861,7 @@ public partial class MainWindow : Window
 
     private async void NickQuery_Click(object sender, RoutedEventArgs e) => await NickCommandAsync("/query {0}");
     private async void NickWhois_Click(object sender, RoutedEventArgs e) => await NickCommandAsync("/whois {0}");
+    private void NickSendFile_Click(object sender, RoutedEventArgs e) => SendDccFile(SelectedNick());
     private async void NickOp_Click(object sender, RoutedEventArgs e) => await ChannelModeAsync("+o");
     private async void NickDeop_Click(object sender, RoutedEventArgs e) => await ChannelModeAsync("-o");
     private async void NickVoice_Click(object sender, RoutedEventArgs e) => await ChannelModeAsync("+v");

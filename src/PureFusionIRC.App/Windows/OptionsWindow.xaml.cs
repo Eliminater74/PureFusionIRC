@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Windows;
+using Microsoft.Win32;
 using PureFusionIRC.Core;
 
 namespace PureFusionIRC.App.Windows;
@@ -23,6 +24,9 @@ public partial class OptionsWindow : Window
         MinimizeTrayBox.IsChecked = app.MinimizeToTray;
         CloseTrayBox.IsChecked = app.CloseToTray;
         NotifyTrayBox.IsChecked = app.TrayNotifications;
+        DccBox.IsChecked = app.DccEnabled;
+        DccReverseBox.IsChecked = app.DccPreferReverse;
+        DccFolderBox.Text = app.DccDownloadFolder;
         TimestampBox.Text = app.TimestampFormat;
         FontBox.Text = app.FontFamily;
         FontSizeBox.Text = app.FontSize.ToString(CultureInfo.InvariantCulture);
@@ -45,6 +49,9 @@ public partial class OptionsWindow : Window
         app.MinimizeToTray = MinimizeTrayBox.IsChecked == true;
         app.CloseToTray = CloseTrayBox.IsChecked == true;
         app.TrayNotifications = NotifyTrayBox.IsChecked == true;
+        app.DccEnabled = DccBox.IsChecked == true;
+        app.DccPreferReverse = DccReverseBox.IsChecked == true;
+        app.DccDownloadFolder = DccFolderBox.Text.Trim();
         app.TimestampFormat = string.IsNullOrWhiteSpace(TimestampBox.Text) ? "HH:mm:ss" : TimestampBox.Text.Trim();
         app.FontFamily = string.IsNullOrWhiteSpace(FontBox.Text) ? "Consolas" : FontBox.Text.Trim();
         if (double.TryParse(FontSizeBox.Text, CultureInfo.InvariantCulture, out var size) && size >= 8 && size <= 36)
@@ -60,5 +67,23 @@ public partial class OptionsWindow : Window
         _runtime.Save();
         DialogResult = true;
         Close();
+    }
+
+    private void BrowseFolder_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFolderDialog
+        {
+            Title = "Save incoming files to",
+            Multiselect = false
+        };
+        if (!string.IsNullOrWhiteSpace(DccFolderBox.Text))
+        {
+            dialog.InitialDirectory = DccFolderBox.Text.Trim();
+        }
+
+        if (dialog.ShowDialog(this) == true)
+        {
+            DccFolderBox.Text = dialog.FolderName;
+        }
     }
 }

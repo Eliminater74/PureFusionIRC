@@ -6,7 +6,7 @@ HexChat source in `TEMP/` is **reference only** and is gitignored. mIRC has no p
 
 ## Status
 
-**v1.0.0-B1 (beta 1).** Core client: connect over TCP or TLS, register, talk, join channels, nick list, commands, themes, settings import/export, JavaScript scripts, tray, and an Inno Setup installer. See [ROADMAP.md](ROADMAP.md) and [TODO.md](TODO.md) for what comes next (DCC, ident, fuller IRCv3, plugin DLLs).
+**v1.0.0-B1 (beta 1).** Core client: connect over TCP or TLS, register, talk, join channels, nick list, commands, themes, settings import/export, JavaScript scripts, tray, reverse-first file transfers (DCC), and an Inno Setup installer. See [ROADMAP.md](ROADMAP.md) and [TODO.md](TODO.md) for what comes next (DCC chat, ident, fuller IRCv3, plugin DLLs).
 
 ## Requirements
 
@@ -91,7 +91,7 @@ Switch from **View → Theme** or `/theme <id>`. Export/import themes with the r
 
 ```
 [ File  View  Tools  Window  Help ]
-[ toolbar: connect / disconnect / networks / options ]
+[ toolbar: connect / disconnect / networks / options / transfers ]
 +-----------+---------------------------+-----------+
 | tree      | chat (mIRC color codes)   | nick list |
 |  server   |                           | @ops      |
@@ -104,9 +104,23 @@ Switch from **View → Theme** or `/theme <id>`. Export/import themes with the r
 
 ## Commands (subset)
 
-`/server`, `/disconnect`, `/join`, `/part`, `/quit`, `/nick`, `/me`, `/msg`, `/query`, `/notice`, `/ctcp`, `/whois`, `/mode`, `/topic`, `/kick`, `/invite`, `/quote`, `/clear`, `/theme`, `/autojoin`, `/help`
+`/server`, `/disconnect`, `/join`, `/part`, `/quit`, `/nick`, `/me`, `/msg`, `/query`, `/notice`, `/ctcp`, `/whois`, `/mode`, `/topic`, `/kick`, `/invite`, `/quote`, `/clear`, `/theme`, `/autojoin`, `/dcc`, `/help`
 
 Bare text is sent to the current channel or query. `//text` sends a line that starts with `/`.
+
+### File transfers
+
+Direct transfers (DCC SEND) go computer-to-computer. Reverse send is **on by default**, so the other side opens a port and you connect out — typical home NAT does not need port forwarding to send.
+
+- Right-click a nick → **Send file…**, or **File → Send file…** in a query
+- Incoming files get a Save / Decline prompt (not a raw CTCP dump) and show in **File → File transfers…**
+- Progress, speed, and ETA live in that window; Open jumps to the saved file
+- Folder and reverse preference: **Tools → Options → Files**
+- Command line: `/dcc send <nick> <path>`, `/dcc list`, `/dcc cancel`
+
+DCC CHAT is not implemented yet.
+
+Incoming files default to `%AppData%\PureFusionIRC\transfers\`.
 
 ## Scripts
 

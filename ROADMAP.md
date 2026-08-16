@@ -27,7 +27,8 @@ PureFusionIRC is built in layers. Core (this milestone) is a usable Windows IRC 
 
 ## Milestone 2 — File transfer and extras
 
-- DCC chat and DCC send/receive with a transfer window
+- [x] DCC send/receive with reverse-first NAT, incoming prompt, and a transfer window
+- DCC chat; RESUME/ACCEPT (continue a partial file)
 - CTCP SOUND / AVATAR leftovers only if people still use them
 - Ignore list with wildcards, flood protection tunables
 - Favorites, perform-on-connect scripts per network

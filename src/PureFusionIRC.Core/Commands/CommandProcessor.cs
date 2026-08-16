@@ -470,7 +470,7 @@ public sealed class CommandProcessor
         if (c.Args.Length == 0 || c.Args[0] is "list" or "transfers")
         {
             var n = c.Session.Dcc.Transfers.Count;
-            return CommandResult.Ok(n == 0 ? "No file transfers." : n + " transfer(s). Open Tools → File transfers.");
+            return CommandResult.Ok(n == 0 ? "No file transfers." : n + " transfer(s). Open File → File transfers.");
         }
 
         var verb = c.Args[0];

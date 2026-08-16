@@ -46,6 +46,8 @@
                 <MenuItem Header="_Networks…" Click="Networks_Click" InputGestureText="Ctrl+N"/>
                 <MenuItem Header="C_onnect" Click="Connect_Click"/>
                 <MenuItem Header="_Disconnect" Click="Disconnect_Click"/>
+                <MenuItem Header="File _transfers…" Click="Transfers_Click"/>
+                <MenuItem Header="_Send file…" Click="SendFile_Click"/>
                 <Separator/>
                 <MenuItem Header="E_xit" Click="Exit_Click"/>
             </MenuItem>
@@ -77,6 +79,8 @@
             <Button Content="Connect" MinWidth="96" Margin="4,6" Click="Connect_Click"/>
             <Button Content="Disconnect" MinWidth="96" Margin="4,6" Click="Disconnect_Click"/>
             <Button Content="Options" MinWidth="96" Margin="4,6" Click="Options_Click"/>
+            <Button Content="Transfers" MinWidth="96" Margin="4,6" Click="Transfers_Click"
+                    ToolTip="File transfers — incoming offers, progress, and send a file"/>
             <Button x:Name="AutoJoinButton" Content="Auto-join" MinWidth="96" Margin="4,6,8,6"
                     ToolTip="Add or remove the current channel from this network's auto-join list"
                     Click="ToolbarAutoJoin_Click"/>
@@ -175,6 +179,7 @@
                         <ContextMenu>
                             <MenuItem Header="Query" Click="NickQuery_Click"/>
                             <MenuItem Header="Whois" Click="NickWhois_Click"/>
+                            <MenuItem Header="Send file…" Click="NickSendFile_Click"/>
                             <Separator/>
                             <MenuItem Header="Op" Click="NickOp_Click"/>
                             <MenuItem Header="Deop" Click="NickDeop_Click"/>
