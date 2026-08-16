@@ -1,0 +1,146 @@
+# -----------------------------------------------------------------------------
+# PureFusionIRC — Git ignore rules
+# TEMP/ holds archived HexChat reference source. It must never be committed.
+# -----------------------------------------------------------------------------
+
+# Local reference archives (HexChat source, dumps, extracted trees)
+TEMP/
+temp/
+/TEMP
+*.7z
+*.zip
+*.rar
+*.tar
+*.tar.gz
+*.tgz
+
+# -----------------------------------------------------------------------------
+# Build outputs
+# -----------------------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+[Bb]uild/
+[Aa]rtifacts/
+[Ll]og/
+[Ll]ogs/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.ilk
+*.meta
+*.obj
+*.o
+*.lib
+*.exp
+*.map
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# NuGet
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# .NET
+*.nuget.props
+*.nuget.targets
+*.dotnet/
+.dotnet/
+
+# MSBuild
+*.binlog
+msbuild.binlog
+*.log
+
+# -----------------------------------------------------------------------------
+# Visual Studio / Rider / VS Code / Cursor
+# -----------------------------------------------------------------------------
+.vs/
+.vscode/
+.idea/
+*.code-workspace
+*.csproj.user
+*.publishproj.user
+*.rc.user
+UpgradeLog*.xml
+UpgradeLog*.htm
+_UpgradeReport_Files/
+.apphost/
+
+# Test / coverage
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+TestResults/
+BenchmarkDotNet.Artifacts/
+
+# Publish / installer leftovers
+[Pp]ublish/
+*.msi
+*.msix
+*.appx
+*.appxbundle
+*.appinstaller
+ClickOnce/
+
+# -----------------------------------------------------------------------------
+# User, machine, and secrets — never commit these
+# -----------------------------------------------------------------------------
+appsettings.*.local.json
+*.local.json
+*.pfx
+*.snk
+secrets.json
+.env
+.env.*
+!.env.example
+
+# Application user data generated at runtime
+AppData/
+userdata/
+user-settings/
+*.pfuser
+*.pftheme.bak
+
+# Crash dumps
+*.dmp
+*.mdmp
+
+# -----------------------------------------------------------------------------
+# OS junk
+# -----------------------------------------------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+.DS_Store
+
+# -----------------------------------------------------------------------------
+# Misc tooling
+# -----------------------------------------------------------------------------
+node_modules/
+*.tmp
+*.temp
+*.swp
+*~
+~$*
+*.bak
+*.orig
+*.rej
