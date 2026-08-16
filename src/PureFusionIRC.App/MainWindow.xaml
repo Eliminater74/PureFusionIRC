@@ -199,8 +199,28 @@
             <DockPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" LastChildFill="True" Margin="0,4,0,6">
                 <TextBlock x:Name="InputPrompt" DockPanel.Dock="Left" VerticalAlignment="Center"
                            Margin="8,0,8,0" Foreground="{DynamicResource AccentBrush}" Text="&gt;"/>
-                <TextBox x:Name="InputBox" MinHeight="28" FontFamily="Consolas"
-                         KeyDown="InputBox_KeyDown" AcceptsReturn="False"/>
+                <Grid>
+                    <TextBox x:Name="InputBox" MinHeight="28" FontFamily="Consolas"
+                             AcceptsReturn="False"
+                             PreviewKeyDown="InputBox_PreviewKeyDown"
+                             KeyDown="InputBox_KeyDown"
+                             TextChanged="InputBox_TextChanged"/>
+                    <Popup x:Name="NickPopup"
+                           PlacementTarget="{Binding ElementName=InputBox}"
+                           Placement="Top"
+                           StaysOpen="True">
+                        <Border Background="{DynamicResource PanelBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrushKey}"
+                                BorderThickness="1"
+                                MinWidth="180" MaxWidth="360">
+                            <ListBox x:Name="NickSuggestList"
+                                     MaxHeight="220"
+                                     Background="{DynamicResource PanelBackgroundBrush}"
+                                     Foreground="{DynamicResource PrimaryTextBrush}"
+                                     MouseLeftButtonUp="NickSuggest_Click"/>
+                        </Border>
+                    </Popup>
+                </Grid>
             </DockPanel>
         </Grid>
     </DockPanel>

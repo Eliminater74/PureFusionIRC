@@ -12,6 +12,7 @@ using PureFusionIRC.Core;
 using PureFusionIRC.Core.Buffers;
 using PureFusionIRC.Core.Irc;
 using PureFusionIRC.Core.Models;
+using PureFusionIRC.Core.Text;
 using PureFusionIRC.Core.Theming;
 
 namespace PureFusionIRC.App;
@@ -21,6 +22,7 @@ public partial class MainWindow : Window
     private readonly ClientRuntime _runtime;
     private readonly List<string> _history = new();
     private int _historyIndex = -1;
+    private int _atTokenStart;
     private IrcSession? _session;
     private IrcBuffer? _buffer;
     private bool _editingTopic;
@@ -517,6 +519,41 @@ public partial class MainWindow : Window
         }
     }
 
+    private void InputBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (NickPopup.IsOpen)
+        {
+            if (e.Key == Key.Escape)
+            {
+                HideNickPicker();
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Down)
+            {
+                MoveNickPicker(1);
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Up)
+            {
+                MoveNickPicker(-1);
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key is Key.Enter or Key.Tab or Key.Right)
+            {
+                if (AcceptNickPicker())
+                {
+                    e.Handled = true;
+                }
+            }
+        }
+    }
+
     private async void InputBox_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Up)
@@ -558,7 +595,19 @@ public partial class MainWindow : Window
 
         if (e.Key == Key.Tab)
         {
+            if (NickPopup.IsOpen && AcceptNickPicker())
+            {
+                e.Handled = true;
+                return;
+            }
+
             TryNickComplete();
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.Enter && NickPopup.IsOpen && AcceptNickPicker())
+        {
             e.Handled = true;
             return;
         }
@@ -619,6 +668,82 @@ public partial class MainWindow : Window
         var insert = start == 0 ? match + ": " : match;
         InputBox.Text = text[..start] + insert + text[caret..];
         InputBox.CaretIndex = start + insert.Length;
+    }
+
+    private void InputBox_TextChanged(object sender, TextChangedEventArgs e) => UpdateNickPicker();
+
+    private void UpdateNickPicker()
+    {
+        if (_buffer is null || _buffer.Kind != BufferKind.Channel ||
+            !NickMatcher.TryGetAtToken(InputBox.Text, InputBox.CaretIndex, out _atTokenStart, out var query))
+        {
+            HideNickPicker();
+            return;
+        }
+
+        var hits = NickMatcher.Filter(_buffer.Nicks.Select(n => n.Nick), query);
+        if (hits.Count == 0)
+        {
+            HideNickPicker();
+            return;
+        }
+
+        NickSuggestList.ItemsSource = hits;
+        NickSuggestList.SelectedIndex = 0;
+        NickPopup.IsOpen = true;
+    }
+
+    private void HideNickPicker()
+    {
+        NickPopup.IsOpen = false;
+        NickSuggestList.ItemsSource = null;
+    }
+
+    private void MoveNickPicker(int delta)
+    {
+        var count = NickSuggestList.Items.Count;
+        if (count == 0)
+        {
+            return;
+        }
+
+        var next = NickSuggestList.SelectedIndex + delta;
+        if (next < 0)
+        {
+            next = count - 1;
+        }
+        else if (next >= count)
+        {
+            next = 0;
+        }
+
+        NickSuggestList.SelectedIndex = next;
+        NickSuggestList.ScrollIntoView(NickSuggestList.SelectedItem);
+    }
+
+    private bool AcceptNickPicker()
+    {
+        if (NickSuggestList.SelectedItem is not string nick)
+        {
+            return false;
+        }
+
+        var original = InputBox.Text;
+        var caret = InputBox.CaretIndex;
+        InputBox.Text = NickMatcher.InsertNick(original, _atTokenStart, caret, nick);
+        var colon = _atTokenStart == 0 || original[.._atTokenStart].All(char.IsWhiteSpace);
+        InputBox.CaretIndex = _atTokenStart + nick.Length + (colon ? 2 : 1);
+        HideNickPicker();
+        return true;
+    }
+
+    private void NickSuggest_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (NickSuggestList.SelectedItem is string)
+        {
+            AcceptNickPicker();
+            InputBox.Focus();
+        }
     }
 
     private async void NickList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
