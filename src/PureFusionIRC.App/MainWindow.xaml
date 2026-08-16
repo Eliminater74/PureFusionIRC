@@ -193,8 +193,31 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock FontFamily="Consolas">
-                                <Run Text="{Binding Prefixes, Mode=OneWay}" Foreground="{Binding HighestPrefix, Converter={StaticResource NickRankBrush}}"/>
-                                <Run Text="{Binding Nick, Mode=OneWay}" Foreground="{Binding HighestPrefix, Converter={StaticResource NickRankBrush}}"/>
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSelf}" Value="True">
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                                <Run Text="{Binding Prefixes, Mode=OneWay}">
+                                    <Run.Foreground>
+                                        <MultiBinding Converter="{StaticResource NickRankBrush}">
+                                            <Binding Path="IsSelf"/>
+                                            <Binding Path="HighestPrefix"/>
+                                        </MultiBinding>
+                                    </Run.Foreground>
+                                </Run>
+                                <Run Text="{Binding Nick, Mode=OneWay}">
+                                    <Run.Foreground>
+                                        <MultiBinding Converter="{StaticResource NickRankBrush}">
+                                            <Binding Path="IsSelf"/>
+                                            <Binding Path="HighestPrefix"/>
+                                        </MultiBinding>
+                                    </Run.Foreground>
+                                </Run>
                                 <Run Text="{Binding StatusMarks, Mode=OneWay}" Foreground="{DynamicResource DimTextBrush}"/>
                             </TextBlock>
                         </DataTemplate>

@@ -27,7 +27,7 @@
             <SolidColorBrush x:Key="AccentFillBrush" Color="#1E88E5"/>
             <SolidColorBrush x:Key="AccentOnBrush" Color="#FFFFFF"/>
             <SolidColorBrush x:Key="HighlightBrush" Color="#FF8A65"/>
-            <SolidColorBrush x:Key="SelfNickBrush" Color="#80CBC4"/>
+            <SolidColorBrush x:Key="SelfNickBrush" Color="#69F0AE"/>
             <SolidColorBrush x:Key="OtherNickBrush" Color="#90CAF9"/>
             <SolidColorBrush x:Key="ActionBrush" Color="#CE93D8"/>
             <SolidColorBrush x:Key="LinkBrush" Color="#64B5F6"/>

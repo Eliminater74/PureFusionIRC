@@ -65,6 +65,7 @@ public sealed class NickEntry : INotifyPropertyChanged
     private string _prefixes;
     private string? _account;
     private bool _away;
+    private bool _isSelf;
     private int? _idleSeconds;
 
     public NickEntry(string nick, string prefixes = "")
@@ -103,6 +104,12 @@ public sealed class NickEntry : INotifyPropertyChanged
                 OnPropertyChanged(nameof(StatusMarks));
             }
         }
+    }
+
+    public bool IsSelf
+    {
+        get => _isSelf;
+        set => SetField(ref _isSelf, value);
     }
 
     public int? IdleSeconds

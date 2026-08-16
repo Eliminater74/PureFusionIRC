@@ -81,6 +81,7 @@ public sealed class IrcBuffer : INotifyPropertyChanged
             }
 
             existing.Account = entry.Account ?? existing.Account;
+            existing.IsSelf = entry.IsSelf;
         }
         else
         {
@@ -129,6 +130,14 @@ public sealed class IrcBuffer : INotifyPropertyChanged
         entry.Nick = newNick;
         NickMap[newNick] = entry;
         RebuildNickOrder();
+    }
+
+    public void MarkSelf(string selfNick)
+    {
+        foreach (var entry in NickMap.Values)
+        {
+            entry.IsSelf = string.Equals(entry.Nick, selfNick, StringComparison.OrdinalIgnoreCase);
+        }
     }
 
     public void AddPrefix(string nick, char prefix)

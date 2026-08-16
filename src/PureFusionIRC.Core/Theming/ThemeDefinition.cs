@@ -46,7 +46,7 @@ public sealed class ThemeUiColors
 
     private static string Fallback(string value, string fallback) =>
         string.IsNullOrWhiteSpace(value) ? fallback : value;
-    public string SelfNick { get; set; } = "#80CBC4";
+    public string SelfNick { get; set; } = "#69F0AE";
     public string OtherNick { get; set; } = "#90CAF9";
     public string Action { get; set; } = "#CE93D8";
     public string Link { get; set; } = "#64B5F6";

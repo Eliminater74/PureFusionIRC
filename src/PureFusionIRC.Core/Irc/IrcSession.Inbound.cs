@@ -58,6 +58,7 @@ public sealed partial class IrcSession
                 return;
             case IrcNumerics.Welcome:
                 CurrentNick = message[0] ?? CurrentNick;
+                MarkSelfNicks();
                 _gotWelcome = true;
                 _failover.RecordSuccess();
                 SetState(SessionState.Connected);
@@ -355,7 +356,7 @@ public sealed partial class IrcSession
             return;
         }
 
-        buffer.UpsertNick(new NickEntry(nick));
+        buffer.UpsertNick(MakeNick(nick));
     }
 
     private void HandlePart(IrcMessage message)
@@ -399,6 +400,7 @@ public sealed partial class IrcSession
         if (string.Equals(oldNick, CurrentNick, StringComparison.OrdinalIgnoreCase))
         {
             CurrentNick = newNick;
+            MarkSelfNicks();
         }
 
         foreach (var buffer in Buffers.Where(b => b.Kind == BufferKind.Channel && b.NickMap.ContainsKey(oldNick)).ToList())
@@ -521,7 +523,7 @@ public sealed partial class IrcSession
             var nick = token[i..];
             if (nick.Length > 0)
             {
-                buffer.UpsertNick(new NickEntry(nick, prefixes));
+                buffer.UpsertNick(MakeNick(nick, prefixes));
             }
         }
     }
@@ -557,7 +559,9 @@ public sealed partial class IrcSession
         var prefixes = NickEntry.NormalizePrefixes(flags);
         if (!buffer.NickMap.ContainsKey(nick))
         {
-            buffer.UpsertNick(new NickEntry(nick, prefixes) { Away = away });
+            var entry = MakeNick(nick, prefixes);
+            entry.Away = away;
+            buffer.UpsertNick(entry);
             return;
         }
 
@@ -705,7 +709,25 @@ public sealed partial class IrcSession
             ? Identity.AlternativeNick
             : CurrentNick + "_";
         CurrentNick = next;
+        MarkSelfNicks();
         Print(ServerBuffer, ChatLineKind.Error, "Nickname in use, trying " + next);
         await SendRawAsync("NICK " + next, cancellationToken).ConfigureAwait(false);
+    }
+
+    private bool IsMe(string nick) =>
+        string.Equals(nick, CurrentNick, StringComparison.OrdinalIgnoreCase);
+
+    private NickEntry MakeNick(string nick, string prefixes = "") =>
+        new(nick, prefixes) { IsSelf = IsMe(nick) };
+
+    private void MarkSelfNicks()
+    {
+        foreach (var buffer in Buffers)
+        {
+            if (buffer.Kind == BufferKind.Channel)
+            {
+                buffer.MarkSelf(CurrentNick);
+            }
+        }
     }
 }
