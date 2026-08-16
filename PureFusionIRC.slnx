@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PureFusionIRC.Core/PureFusionIRC.Core.csproj" />
+    <Project Path="src/PureFusionIRC.App/PureFusionIRC.App.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PureFusionIRC.Core.Tests/PureFusionIRC.Core.Tests.csproj" />
+  </Folder>
+</Solution>
