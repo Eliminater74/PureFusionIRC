@@ -1,23 +1,447 @@
-﻿using System.Text;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Microsoft.Win32;
+using PureFusionIRC.App.Theming;
+using PureFusionIRC.App.Windows;
+using PureFusionIRC.Core;
+using PureFusionIRC.Core.Buffers;
+using PureFusionIRC.Core.Irc;
+using PureFusionIRC.Core.Models;
+using PureFusionIRC.Core.Theming;
 
 namespace PureFusionIRC.App;
 
-/// <summary>
-/// Interaction logic for MainWindow.xaml
-/// </summary>
 public partial class MainWindow : Window
 {
-    public MainWindow()
+    private readonly ClientRuntime _runtime;
+    private readonly List<string> _history = new();
+    private int _historyIndex = -1;
+    private IrcSession? _session;
+    private IrcBuffer? _buffer;
+
+    public MainWindow() : this(new ClientRuntime())
     {
+    }
+
+    public MainWindow(ClientRuntime runtime)
+    {
+        _runtime = runtime;
         InitializeComponent();
+        ApplyTheme(_runtime.Theme);
+        BuildThemeMenu();
+        BufferTree.ItemsSource = _runtime.Sessions;
+        Chat.Configure(_runtime.Theme, _runtime.Document.App);
+        ShowTreeItem.IsChecked = _runtime.Document.App.ShowTree;
+        ShowNicksItem.IsChecked = _runtime.Document.App.ShowNickList;
+        ShowToolbarItem.IsChecked = _runtime.Document.App.ShowToolbar;
+        ApplyLayoutFlags();
+        _runtime.ThemeChanged += (_, _) => Dispatcher.Invoke(() => ApplyTheme(_runtime.Theme));
+        _runtime.SessionAdded += (_, session) => Dispatcher.Invoke(() => HookSession(session));
+        Loaded += (_, _) => InputBox.Focus();
+        Closing += (_, _) =>
+        {
+            _runtime.Save();
+            _ = _runtime.DisposeAsync().AsTask();
+        };
+    }
+
+    private void HookSession(IrcSession session)
+    {
+        session.Synchronization = SynchronizationContext.Current;
+        session.LineAdded += (_, e) => Dispatcher.Invoke(() =>
+        {
+            if (ReferenceEquals(_buffer, e.Buffer))
+            {
+                Chat.Append(e.Buffer, e.Line);
+            }
+
+            RefreshStatus();
+        });
+        session.StateChanged += (_, _) => Dispatcher.Invoke(RefreshStatus);
+        session.BufferOpened += (_, buffer) => Dispatcher.Invoke(() =>
+        {
+            SelectBuffer(session, buffer);
+        });
+        BufferTree.Items.Refresh();
+        _session = session;
+        SelectBuffer(session, session.ServerBuffer);
+    }
+
+    private void SelectBuffer(IrcSession session, IrcBuffer buffer)
+    {
+        _session = session;
+        _buffer = buffer;
+        Chat.Show(buffer);
+        NickList.ItemsSource = buffer.Nicks;
+        NickHeader.Text = buffer.Kind == BufferKind.Channel ? $"Nicks ({buffer.UserCount})" : "Nicks";
+        TopicBar.Text = buffer.Topic ?? buffer.Name;
+        Title = $"{buffer.Name} — PureFusionIRC";
+        InputPrompt.Text = buffer.Kind == BufferKind.Channel ? buffer.Name : ">";
+        RefreshStatus();
+    }
+
+    private void ApplyTheme(ThemeDefinition theme)
+    {
+        ThemeApplication.Apply(theme, Application.Current.Resources);
+        Chat.Configure(theme, _runtime.Document.App);
+        Background = (System.Windows.Media.Brush)FindResource("WindowBackgroundBrush");
+    }
+
+    private void BuildThemeMenu()
+    {
+        ThemeMenu.Items.Clear();
+        foreach (var theme in _runtime.Themes.LoadAll())
+        {
+            var item = new MenuItem { Header = theme.Name, Tag = theme.Id, IsCheckable = true };
+            item.IsChecked = string.Equals(theme.Id, _runtime.Theme.Id, StringComparison.OrdinalIgnoreCase);
+            item.Click += (_, _) =>
+            {
+                _runtime.ApplyTheme((string)item.Tag);
+                BuildThemeMenu();
+                if (_buffer is not null)
+                {
+                    Chat.Show(_buffer);
+                }
+            };
+            ThemeMenu.Items.Add(item);
+        }
+    }
+
+    private async void Networks_Click(object sender, RoutedEventArgs e)
+    {
+        var window = new NetworkWindow(_runtime) { Owner = this };
+        if (window.ShowDialog() == true && window.ConnectTarget is not null)
+        {
+            await ConnectAsync(window.ConnectTarget).ConfigureAwait(true);
+        }
+    }
+
+    private async void Connect_Click(object sender, RoutedEventArgs e)
+    {
+        var network = _runtime.Document.Networks.FirstOrDefault(n => n.Enabled);
+        if (network is null)
+        {
+            Networks_Click(sender, e);
+            return;
+        }
+
+        await ConnectAsync(network).ConfigureAwait(true);
+    }
+
+    private async Task ConnectAsync(NetworkProfile network)
+    {
+        try
+        {
+            var session = await _runtime.ConnectAsync(network).ConfigureAwait(true);
+            session.Synchronization ??= SynchronizationContext.Current;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "Connect failed", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private async void Disconnect_Click(object sender, RoutedEventArgs e)
+    {
+        if (_session is not null)
+        {
+            await _session.DisconnectAsync().ConfigureAwait(true);
+        }
+    }
+
+    private void Exit_Click(object sender, RoutedEventArgs e) => Close();
+
+    private void ToggleTree_Click(object sender, RoutedEventArgs e)
+    {
+        _runtime.Document.App.ShowTree = ShowTreeItem.IsChecked == true;
+        ApplyLayoutFlags();
+        _runtime.Save();
+    }
+
+    private void ToggleNicks_Click(object sender, RoutedEventArgs e)
+    {
+        _runtime.Document.App.ShowNickList = ShowNicksItem.IsChecked == true;
+        ApplyLayoutFlags();
+        _runtime.Save();
+    }
+
+    private void ToggleToolbar_Click(object sender, RoutedEventArgs e)
+    {
+        _runtime.Document.App.ShowToolbar = ShowToolbarItem.IsChecked == true;
+        ApplyLayoutFlags();
+        _runtime.Save();
+    }
+
+    private void ApplyLayoutFlags()
+    {
+        TreeColumn.Width = _runtime.Document.App.ShowTree ? new GridLength(220) : new GridLength(0);
+        NickColumn.Width = _runtime.Document.App.ShowNickList ? new GridLength(180) : new GridLength(0);
+        ToolbarTray.Visibility = _runtime.Document.App.ShowToolbar ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void Options_Click(object sender, RoutedEventArgs e)
+    {
+        var window = new OptionsWindow(_runtime) { Owner = this };
+        if (window.ShowDialog() == true)
+        {
+            ApplyTheme(_runtime.Theme);
+            Chat.Configure(_runtime.Theme, _runtime.Document.App);
+            if (_buffer is not null)
+            {
+                Chat.Show(_buffer);
+            }
+        }
+    }
+
+    private void ReloadScripts_Click(object sender, RoutedEventArgs e)
+    {
+        _runtime.Scripts.LoadDirectory(_runtime.Store.ScriptsDir);
+        MessageBox.Show(this,
+            $"Loaded {_runtime.Scripts.LoadedCount} script(s)." +
+            (_runtime.LastScriptError is null ? "" : Environment.NewLine + _runtime.LastScriptError),
+            "Scripts");
+    }
+
+    private void OpenScripts_Click(object sender, RoutedEventArgs e)
+    {
+        Directory.CreateDirectory(_runtime.Store.ScriptsDir);
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = _runtime.Store.ScriptsDir,
+            UseShellExecute = true
+        });
+    }
+
+    private void Export_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new SaveFileDialog
+        {
+            Filter = "PureFusion settings pack (*.zip)|*.zip",
+            FileName = "purefusion-settings.zip"
+        };
+        if (dialog.ShowDialog(this) == true)
+        {
+            _runtime.Save();
+            _runtime.Export(dialog.FileName);
+        }
+    }
+
+    private void Import_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog { Filter = "PureFusion settings pack (*.zip)|*.zip" };
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        _runtime.Import(dialog.FileName);
+        ApplyTheme(_runtime.Theme);
+        BuildThemeMenu();
+        MessageBox.Show(this, "Settings imported. Connect again to use network changes.", "Import");
+    }
+
+    private void About_Click(object sender, RoutedEventArgs e)
+    {
+        MessageBox.Show(this,
+            "PureFusionIRC 0.1.0\nWindows C# IRC client inspired by mIRC, with a full theme engine.\nDefault theme: AMOLED Black.\nScripts: JavaScript (.pf.js), not mIRC script.\n\nMIT License",
+            "About PureFusionIRC");
+    }
+
+    private void BufferTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+    {
+        switch (e.NewValue)
+        {
+            case IrcBuffer buffer:
+            {
+                var session = _runtime.Sessions.FirstOrDefault(s => s.Id == buffer.SessionId);
+                if (session is not null)
+                {
+                    SelectBuffer(session, buffer);
+                }
+
+                break;
+            }
+            case IrcSession session:
+                SelectBuffer(session, session.ServerBuffer);
+                break;
+        }
+    }
+
+    private async void InputBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Up)
+        {
+            if (_history.Count == 0)
+            {
+                return;
+            }
+
+            _historyIndex = _historyIndex < 0 ? _history.Count - 1 : Math.Max(0, _historyIndex - 1);
+            InputBox.Text = _history[_historyIndex];
+            InputBox.CaretIndex = InputBox.Text.Length;
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.Down)
+        {
+            if (_historyIndex < 0)
+            {
+                return;
+            }
+
+            _historyIndex++;
+            if (_historyIndex >= _history.Count)
+            {
+                _historyIndex = -1;
+                InputBox.Clear();
+            }
+            else
+            {
+                InputBox.Text = _history[_historyIndex];
+                InputBox.CaretIndex = InputBox.Text.Length;
+            }
+
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.Tab)
+        {
+            TryNickComplete();
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key != Key.Enter || _session is null || _buffer is null)
+        {
+            return;
+        }
+
+        var text = InputBox.Text;
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+
+        _history.Add(text);
+        _historyIndex = -1;
+        InputBox.Clear();
+        var result = await _session.Commands.ExecuteAsync(_session, _buffer, text).ConfigureAwait(true);
+        if (result.Error is not null)
+        {
+            _session.Print(_buffer, ChatLineKind.Error, result.Error);
+        }
+        else if (result.Info is not null)
+        {
+            _session.Print(_buffer, ChatLineKind.Info, result.Info);
+        }
+    }
+
+    private void TryNickComplete()
+    {
+        if (_buffer is null)
+        {
+            return;
+        }
+
+        var text = InputBox.Text;
+        var caret = InputBox.CaretIndex;
+        var start = caret;
+        while (start > 0 && !char.IsWhiteSpace(text[start - 1]))
+        {
+            start--;
+        }
+
+        var prefix = text[start..caret];
+        if (prefix.Length == 0)
+        {
+            return;
+        }
+
+        var match = _buffer.Nicks.Select(n => n.Nick)
+            .FirstOrDefault(n => n.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+        if (match is null)
+        {
+            return;
+        }
+
+        var insert = start == 0 ? match + ": " : match;
+        InputBox.Text = text[..start] + insert + text[caret..];
+        InputBox.CaretIndex = start + insert.Length;
+    }
+
+    private async void NickList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (SelectedNick() is { } nick && _session is not null)
+        {
+            await _session.Commands.ExecuteAsync(_session, _buffer ?? _session.ServerBuffer, "/query " + nick)
+                .ConfigureAwait(true);
+        }
+    }
+
+    private string? SelectedNick() => NickList.SelectedItem is NickEntry entry ? entry.Nick : null;
+
+    private async Task NickCommandAsync(string template)
+    {
+        if (SelectedNick() is not { } nick || _session is null || _buffer is null)
+        {
+            return;
+        }
+
+        await _session.Commands.ExecuteAsync(_session, _buffer, string.Format(template, nick)).ConfigureAwait(true);
+    }
+
+    private async void NickQuery_Click(object sender, RoutedEventArgs e) => await NickCommandAsync("/query {0}");
+    private async void NickWhois_Click(object sender, RoutedEventArgs e) => await NickCommandAsync("/whois {0}");
+    private async void NickOp_Click(object sender, RoutedEventArgs e) => await ChannelModeAsync("+o");
+    private async void NickDeop_Click(object sender, RoutedEventArgs e) => await ChannelModeAsync("-o");
+    private async void NickVoice_Click(object sender, RoutedEventArgs e) => await ChannelModeAsync("+v");
+    private async void NickDevoice_Click(object sender, RoutedEventArgs e) => await ChannelModeAsync("-v");
+    private async void NickKick_Click(object sender, RoutedEventArgs e) => await NickCommandAsync("/kick {0}");
+    private async void NickBan_Click(object sender, RoutedEventArgs e)
+    {
+        if (SelectedNick() is not { } nick || _session is null || _buffer is null)
+        {
+            return;
+        }
+
+        await _session.Commands.ExecuteAsync(_session, _buffer, $"/quote MODE {_buffer.Name} +b {nick}!*@*").ConfigureAwait(true);
+    }
+
+    private async Task ChannelModeAsync(string mode)
+    {
+        if (SelectedNick() is not { } nick || _session is null || _buffer is null)
+        {
+            return;
+        }
+
+        await _session.Commands.ExecuteAsync(_session, _buffer, $"/mode {_buffer.Name} {mode} {nick}").ConfigureAwait(true);
+    }
+
+    private void RefreshStatus()
+    {
+        StatusNick.Text = _session?.CurrentNick ?? "(not connected)";
+        StatusLag.Text = _session is { State: SessionState.Connected } ? $"Lag: {_session.Lag.TotalMilliseconds:0} ms" : "Lag: —";
+        StatusUsers.Text = _buffer?.Kind == BufferKind.Channel ? $"{_buffer.UserCount} users" : "";
+        StatusTopic.Text = _buffer?.Topic ?? _session?.Network.Name ?? "PureFusionIRC";
+        if (_buffer is not null && _buffer.Kind == BufferKind.Channel)
+        {
+            NickHeader.Text = $"Nicks ({_buffer.UserCount})";
+            NickList.ItemsSource = _buffer.Nicks;
+        }
+    }
+
+    protected override void OnPreviewKeyDown(KeyEventArgs e)
+    {
+        if (e.Key == Key.N && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+        {
+            Networks_Click(this, new RoutedEventArgs());
+            e.Handled = true;
+        }
+
+        base.OnPreviewKeyDown(e);
     }
 }

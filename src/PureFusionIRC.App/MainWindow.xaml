@@ -1,12 +1,159 @@
 ﻿<Window x:Class="PureFusionIRC.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:PureFusionIRC.App"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
-    </Grid>
+        xmlns:chat="clr-namespace:PureFusionIRC.App.Chat"
+        xmlns:irc="clr-namespace:PureFusionIRC.Core.Irc;assembly=PureFusionIRC.Core"
+        xmlns:buf="clr-namespace:PureFusionIRC.Core.Buffers;assembly=PureFusionIRC.Core"
+        Title="PureFusionIRC"
+        Height="720" Width="1180"
+        MinHeight="480" MinWidth="800"
+        Background="{DynamicResource WindowBackgroundBrush}">
+    <Window.Resources>
+        <HierarchicalDataTemplate DataType="{x:Type irc:IrcSession}" ItemsSource="{Binding Buffers}">
+            <TextBlock Text="{Binding Network.Name}" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold"/>
+        </HierarchicalDataTemplate>
+        <DataTemplate DataType="{x:Type buf:IrcBuffer}">
+            <TextBlock x:Name="BufferLabel" Text="{Binding Name}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Kind}" Value="Channel">
+                                <Setter Property="Foreground" Value="{DynamicResource ChannelBrush}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Kind}" Value="Query">
+                                <Setter Property="Foreground" Value="{DynamicResource QueryBrush}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Activity}" Value="Message">
+                                <Setter Property="Foreground" Value="{DynamicResource UnreadBrush}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Activity}" Value="Highlight">
+                                <Setter Property="Foreground" Value="{DynamicResource MentionBrush}"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </DataTemplate>
+    </Window.Resources>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Networks…" Click="Networks_Click" InputGestureText="Ctrl+N"/>
+                <MenuItem Header="C_onnect" Click="Connect_Click"/>
+                <MenuItem Header="_Disconnect" Click="Disconnect_Click"/>
+                <Separator/>
+                <MenuItem Header="E_xit" Click="Exit_Click"/>
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem x:Name="ShowTreeItem" Header="Server _tree" IsCheckable="True" IsChecked="True" Click="ToggleTree_Click"/>
+                <MenuItem x:Name="ShowNicksItem" Header="_Nick list" IsCheckable="True" IsChecked="True" Click="ToggleNicks_Click"/>
+                <MenuItem x:Name="ShowToolbarItem" Header="_Toolbar" IsCheckable="True" IsChecked="True" Click="ToggleToolbar_Click"/>
+                <Separator/>
+                <MenuItem Header="_Theme" x:Name="ThemeMenu"/>
+            </MenuItem>
+            <MenuItem Header="_Tools">
+                <MenuItem Header="_Options…" Click="Options_Click"/>
+                <MenuItem Header="Reload s_cripts" Click="ReloadScripts_Click"/>
+                <MenuItem Header="Open scripts _folder" Click="OpenScripts_Click"/>
+                <Separator/>
+                <MenuItem Header="_Export settings…" Click="Export_Click"/>
+                <MenuItem Header="_Import settings…" Click="Import_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_About PureFusionIRC" Click="About_Click"/>
+            </MenuItem>
+        </Menu>
+        <ToolBarTray x:Name="ToolbarTray" DockPanel.Dock="Top" Background="{DynamicResource ChromeBackgroundBrush}">
+            <ToolBar Band="0" BandIndex="0">
+                <Button Content="Networks" Click="Networks_Click"/>
+                <Button Content="Connect" Click="Connect_Click"/>
+                <Button Content="Disconnect" Click="Disconnect_Click"/>
+                <Separator/>
+                <Button Content="Options" Click="Options_Click"/>
+            </ToolBar>
+        </ToolBarTray>
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock x:Name="StatusNick" Text="(not connected)"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock x:Name="StatusLag" Text="Lag: —"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock x:Name="StatusUsers" Text=""/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem HorizontalContentAlignment="Stretch">
+                <TextBlock x:Name="StatusTopic" Text="PureFusionIRC" TextTrimming="CharacterEllipsis"/>
+            </StatusBarItem>
+        </StatusBar>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="TreeColumn" Width="220"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition x:Name="NickColumn" Width="180"/>
+            </Grid.ColumnDefinitions>
+            <DockPanel Grid.Row="0" Grid.Column="0">
+                <TextBlock DockPanel.Dock="Top" Text="Servers / channels" Margin="8,6,8,4"
+                           Foreground="{DynamicResource DimTextBrush}" FontSize="11"/>
+                <TreeView x:Name="BufferTree" SelectedItemChanged="BufferTree_SelectedItemChanged"
+                          BorderThickness="0" Padding="4"/>
+            </DockPanel>
+            <GridSplitter Grid.Row="0" Grid.Column="1" Width="4" HorizontalAlignment="Stretch"
+                          Background="{DynamicResource BorderBrushKey}"/>
+            <DockPanel Grid.Row="0" Grid.Column="2">
+                <TextBlock x:Name="TopicBar" DockPanel.Dock="Top" Padding="8,4"
+                           Background="{DynamicResource ChromeBackgroundBrush}"
+                           Foreground="{DynamicResource DimTextBrush}"
+                           TextTrimming="CharacterEllipsis"
+                           Text=""/>
+                <chat:ChatView x:Name="Chat"/>
+            </DockPanel>
+            <GridSplitter Grid.Row="0" Grid.Column="3" Width="4" HorizontalAlignment="Stretch"
+                          Background="{DynamicResource BorderBrushKey}"/>
+            <DockPanel Grid.Row="0" Grid.Column="4">
+                <TextBlock x:Name="NickHeader" DockPanel.Dock="Top" Text="Nicks" Margin="8,6,8,4"
+                           Foreground="{DynamicResource DimTextBrush}" FontSize="11"/>
+                <ListBox x:Name="NickList" BorderThickness="0"
+                         Background="{DynamicResource NickListBackgroundBrush}"
+                         MouseDoubleClick="NickList_MouseDoubleClick">
+                    <ListBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Query" Click="NickQuery_Click"/>
+                            <MenuItem Header="Whois" Click="NickWhois_Click"/>
+                            <Separator/>
+                            <MenuItem Header="Op" Click="NickOp_Click"/>
+                            <MenuItem Header="Deop" Click="NickDeop_Click"/>
+                            <MenuItem Header="Voice" Click="NickVoice_Click"/>
+                            <MenuItem Header="Devoice" Click="NickDevoice_Click"/>
+                            <Separator/>
+                            <MenuItem Header="Kick" Click="NickKick_Click"/>
+                            <MenuItem Header="Ban" Click="NickBan_Click"/>
+                        </ContextMenu>
+                    </ListBox.ContextMenu>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Display}" Foreground="{DynamicResource PrimaryTextBrush}" FontFamily="Consolas"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+            <DockPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" LastChildFill="True" Margin="0,4,0,6">
+                <TextBlock x:Name="InputPrompt" DockPanel.Dock="Left" VerticalAlignment="Center"
+                           Margin="8,0,8,0" Foreground="{DynamicResource AccentBrush}" Text="&gt;"/>
+                <TextBox x:Name="InputBox" MinHeight="28" FontFamily="Consolas"
+                         KeyDown="InputBox_KeyDown" AcceptsReturn="False"/>
+            </DockPanel>
+        </Grid>
+    </DockPanel>
 </Window>
