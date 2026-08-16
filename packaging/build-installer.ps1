@@ -61,7 +61,6 @@ dotnet publish (Join-Path $root "src\PureFusionIRC.App\PureFusionIRC.App.csproj"
     -o $publishDir `
     -p:Version=$Version `
     -p:InformationalVersion=$Version `
-    -p:IncludeNativeLibrariesForSelfExtract=true `
     -p:DebugType=none `
     -p:DebugSymbols=false
 if ($LASTEXITCODE -ne 0) {

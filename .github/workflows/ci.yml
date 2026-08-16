@@ -1,0 +1,98 @@
+name: Build and release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version label without a leading v (example 1.0.0-B1)
+        required: false
+        default: "1.0.0-B1"
+      create_release:
+        description: Create a GitHub Release for this version
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
+
+jobs:
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Test
+        run: dotnet test PureFusionIRC.slnx -c Release --nologo
+
+      - name: Resolve version
+        id: ver
+        shell: pwsh
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          $version = $env:INPUT_VERSION
+          if ($env:GITHUB_REF_TYPE -eq "tag") {
+            $name = $env:GITHUB_REF_NAME
+            $version = if ($name.StartsWith("v")) { $name.Substring(1) } else { $name }
+          }
+          elseif ([string]::IsNullOrWhiteSpace($version)) {
+            $text = Get-Content Directory.Build.props -Raw
+            $prefix = if ($text -match "<VersionPrefix>([^<]+)</VersionPrefix>") { $Matches[1].Trim() } else { "1.0.0" }
+            $suffix = if ($text -match "<VersionSuffix>([^<]+)</VersionSuffix>") { $Matches[1].Trim() } else { "" }
+            $version = if ($suffix) { "$prefix-$suffix" } else { $prefix }
+          }
+          else {
+            $version = $version.Trim().TrimStart("v")
+          }
+
+          $prerelease = ($version -match "-").ToString().ToLowerInvariant()
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "prerelease=$prerelease" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Version $version (prerelease=$prerelease)"
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Publish and compile setup.exe
+        shell: pwsh
+        run: ./packaging/build-installer.ps1 -Version "${{ steps.ver.outputs.version }}"
+
+      - name: Upload installer artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PureFusionIRC-${{ steps.ver.outputs.version }}
+          path: |
+            artifacts/installer/*.exe
+            artifacts/portable/*.zip
+          if-no-files-found: error
+
+      - name: GitHub Release
+        if: >-
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == 'true')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: PureFusionIRC ${{ steps.ver.outputs.version }}
+          draft: false
+          prerelease: ${{ steps.ver.outputs.prerelease == 'true' }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            artifacts/installer/*.exe
+            artifacts/portable/*.zip
