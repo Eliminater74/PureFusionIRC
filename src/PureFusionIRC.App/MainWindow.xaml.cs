@@ -43,6 +43,9 @@ public partial class MainWindow : Window
         BuildThemeMenu();
         BufferTree.ItemsSource = _runtime.Sessions;
         Chat.Configure(_runtime.Theme, _runtime.Document.App);
+        Chat.ReplyNick += InsertReplyPrefix;
+        Chat.QueryNick += nick => _ = NickCommandFromChatAsync("/query {0}", nick);
+        Chat.WhoisNick += nick => _ = NickCommandFromChatAsync("/whois {0}", nick);
         ShowTreeItem.IsChecked = _runtime.Document.App.ShowTree;
         ShowNicksItem.IsChecked = _runtime.Document.App.ShowNickList;
         ShowToolbarItem.IsChecked = _runtime.Document.App.ShowToolbar;
@@ -756,6 +759,25 @@ public partial class MainWindow : Window
     }
 
     private string? SelectedNick() => NickList.SelectedItem is NickEntry entry ? entry.Nick : null;
+
+    private void InsertReplyPrefix(string nick)
+    {
+        InputBox.Focus();
+        var rest = InputBox.Text.TrimStart();
+        InputBox.Text = string.IsNullOrEmpty(rest) ? nick + ": " : nick + ": " + rest;
+        InputBox.CaretIndex = InputBox.Text.Length;
+    }
+
+    private async Task NickCommandFromChatAsync(string template, string nick)
+    {
+        if (_session is null)
+        {
+            return;
+        }
+
+        await _session.Commands.ExecuteAsync(_session, _buffer ?? _session.ServerBuffer, string.Format(template, nick))
+            .ConfigureAwait(true);
+    }
 
     private async Task NickCommandAsync(string template)
     {

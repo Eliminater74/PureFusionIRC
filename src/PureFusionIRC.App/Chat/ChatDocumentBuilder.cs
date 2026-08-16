@@ -15,7 +15,7 @@ public static class ChatDocumentBuilder
 
     public static Paragraph Build(ChatLine line, ThemeDefinition theme, AppSettings settings)
     {
-        var paragraph = new Paragraph { Margin = new Thickness(0, 1, 0, 1) };
+        var paragraph = new Paragraph { Margin = new Thickness(0, 1, 0, 1), Tag = line };
         if (line.IsHighlight)
         {
             paragraph.Background = Brush("MentionBrush", theme.Ui.Mention);

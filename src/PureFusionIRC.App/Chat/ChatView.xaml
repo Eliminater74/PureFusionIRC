@@ -18,6 +18,17 @@
                      Background="{DynamicResource ChatBackgroundBrush}"
                      Foreground="{DynamicResource PrimaryTextBrush}"
                      CaretBrush="Transparent">
+            <RichTextBox.ContextMenu>
+                <ContextMenu Opened="ChatMenu_Opened">
+                    <MenuItem x:Name="ReplyItem" Header="Reply" Click="Reply_Click"/>
+                    <MenuItem x:Name="QueryItem" Header="Query" Click="Query_Click"/>
+                    <MenuItem x:Name="WhoisItem" Header="Whois" Click="Whois_Click"/>
+                    <Separator/>
+                    <MenuItem Header="Copy" Click="Copy_Click"/>
+                    <MenuItem x:Name="CopyNickItem" Header="Copy nick" Click="CopyNick_Click"/>
+                    <MenuItem x:Name="OpenLinkItem" Header="Open link in browser" Click="OpenLink_Click"/>
+                </ContextMenu>
+            </RichTextBox.ContextMenu>
             <FlowDocument x:Name="Document"
                           FontFamily="{DynamicResource ThemeFontFamily}"
                           FontSize="13"
