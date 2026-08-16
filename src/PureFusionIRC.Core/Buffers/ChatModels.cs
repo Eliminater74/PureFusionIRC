@@ -137,7 +137,7 @@ public sealed class NickEntry : INotifyPropertyChanged
                 marks.Add(idle >= 3600 ? $"i{idle / 3600}h" : $"i{idle / 60}m");
             }
 
-            return string.Join(" ", marks);
+            return marks.Count == 0 ? string.Empty : " " + string.Join(" ", marks);
         }
     }
 

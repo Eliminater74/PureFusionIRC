@@ -85,6 +85,18 @@ public sealed partial class IrcSession
                 HandleNames(message);
                 return;
             case IrcNumerics.EndOfNames:
+                await HandleEndOfNamesAsync(message, cancellationToken).ConfigureAwait(false);
+                return;
+            case IrcNumerics.WhoReply:
+                HandleWho(message);
+                return;
+            case IrcNumerics.WhoXReply:
+                HandleWhoX(message);
+                return;
+            case IrcNumerics.EndOfWho:
+                return;
+            case "AWAY":
+                HandleAwayNotify(message);
                 return;
             case IrcNumerics.MotdStart:
             case IrcNumerics.Motd:
@@ -103,14 +115,20 @@ public sealed partial class IrcSession
             case IrcNumerics.UModeIs:
                 UserModes = message[1];
                 return;
+            case IrcNumerics.WhoisIdle:
+                HandleWhoisIdle(message);
+                Print(ServerBuffer, ChatLineKind.Info, string.Join(' ', message.Parameters.Skip(1)));
+                return;
             case IrcNumerics.WhoisUser:
             case IrcNumerics.WhoisServer:
             case IrcNumerics.WhoisOperator:
-            case IrcNumerics.WhoisIdle:
             case IrcNumerics.WhoisChannels:
             case IrcNumerics.WhoisAccount:
             case IrcNumerics.EndOfWhois:
+                Print(ServerBuffer, ChatLineKind.Info, string.Join(' ', message.Parameters.Skip(1)));
+                return;
             case IrcNumerics.Away:
+                HandleWhoisAway(message);
                 Print(ServerBuffer, ChatLineKind.Info, string.Join(' ', message.Parameters.Skip(1)));
                 return;
             case IrcNumerics.SaslSuccess:
@@ -497,6 +515,78 @@ public sealed partial class IrcSession
                 buffer.UpsertNick(new NickEntry(nick, prefixes));
             }
         }
+    }
+
+    private Task HandleEndOfNamesAsync(IrcMessage message, CancellationToken cancellationToken)
+    {
+        var channel = message[1] ?? string.Empty;
+        if (string.IsNullOrEmpty(channel) || channel.StartsWith(':'))
+        {
+            return Task.CompletedTask;
+        }
+
+        return SendRawAsync("WHO " + channel, cancellationToken);
+    }
+
+    private void HandleWho(IrcMessage message)
+    {
+        var channel = message[1] ?? string.Empty;
+        var nick = message[5] ?? string.Empty;
+        var flags = message[6] ?? string.Empty;
+        if (string.IsNullOrEmpty(nick) || channel.Length == 0 || channel[0] is not ('#' or '&' or '+'))
+        {
+            return;
+        }
+
+        var buffer = GetOrCreate(BufferKind.Channel, channel);
+        var away = flags.Contains('G');
+        var prefixes = NickEntry.NormalizePrefixes(flags);
+        if (!buffer.NickMap.ContainsKey(nick))
+        {
+            buffer.UpsertNick(new NickEntry(nick, prefixes) { Away = away });
+            return;
+        }
+
+        buffer.ApplyPresence(nick, away, prefixes: prefixes.Length > 0 ? prefixes : null);
+    }
+
+    private void HandleWhoX(IrcMessage message)
+    {
+        // Idle fields filled in the WHOX follow-up.
+    }
+
+    private void HandleAwayNotify(IrcMessage message)
+    {
+        var nick = message.Prefix?.Nick;
+        if (string.IsNullOrEmpty(nick))
+        {
+            return;
+        }
+
+        var away = !string.IsNullOrEmpty(message.Trailing);
+        foreach (var buffer in Buffers.Where(b => b.Kind == BufferKind.Channel))
+        {
+            buffer.ApplyPresence(nick, away);
+        }
+    }
+
+    private void HandleWhoisAway(IrcMessage message)
+    {
+        var nick = message[1];
+        if (string.IsNullOrEmpty(nick))
+        {
+            return;
+        }
+
+        foreach (var buffer in Buffers.Where(b => b.Kind == BufferKind.Channel))
+        {
+            buffer.ApplyPresence(nick, away: true);
+        }
+    }
+
+    private void HandleWhoisIdle(IrcMessage message)
+    {
+        // Idle seconds applied in the idle follow-up.
     }
 
     private void HandleISupport(IrcMessage message)

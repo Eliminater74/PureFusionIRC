@@ -75,9 +75,12 @@ public sealed class IrcBuffer : INotifyPropertyChanged
     {
         if (NickMap.TryGetValue(entry.Nick, out var existing))
         {
-            existing.Prefixes = entry.Prefixes;
+            if (!string.IsNullOrEmpty(entry.Prefixes))
+            {
+                existing.Prefixes = entry.Prefixes;
+            }
+
             existing.Account = entry.Account ?? existing.Account;
-            existing.Away = entry.Away;
         }
         else
         {
@@ -85,6 +88,29 @@ public sealed class IrcBuffer : INotifyPropertyChanged
         }
 
         RebuildNickOrder();
+    }
+
+    public void ApplyPresence(string nick, bool? away = null, int? idleSeconds = null, string? prefixes = null)
+    {
+        if (!NickMap.TryGetValue(nick, out var existing))
+        {
+            return;
+        }
+
+        if (away is not null)
+        {
+            existing.Away = away.Value;
+        }
+
+        if (idleSeconds is not null)
+        {
+            existing.IdleSeconds = idleSeconds;
+        }
+
+        if (!string.IsNullOrEmpty(prefixes))
+        {
+            existing.Prefixes = prefixes;
+        }
     }
 
     public void RemoveNick(string nick)

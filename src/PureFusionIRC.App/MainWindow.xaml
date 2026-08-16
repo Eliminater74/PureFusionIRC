@@ -179,6 +179,7 @@
                             <TextBlock FontFamily="Consolas">
                                 <Run Text="{Binding Prefixes, Mode=OneWay}" Foreground="{Binding HighestPrefix, Converter={StaticResource NickRankBrush}}"/>
                                 <Run Text="{Binding Nick, Mode=OneWay}" Foreground="{Binding HighestPrefix, Converter={StaticResource NickRankBrush}}"/>
+                                <Run Text="{Binding StatusMarks, Mode=OneWay}" Foreground="{DynamicResource DimTextBrush}"/>
                             </TextBlock>
                         </DataTemplate>
                     </ListBox.ItemTemplate>

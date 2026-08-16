@@ -33,6 +33,7 @@ public static class IrcNumerics
     public const string WhoReply = "352";
     public const string NameReply = "353";
     public const string EndOfWho = "315";
+    public const string WhoXReply = "354";
     public const string EndOfNames = "366";
     public const string BanList = "367";
     public const string EndOfBanList = "368";
