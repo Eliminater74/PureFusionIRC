@@ -10,11 +10,13 @@ public sealed class GitHubUpdateClient
     private static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
     private readonly HttpClient _http;
     private readonly string _releasesPath;
+    private readonly string _repoPath;
 
     public GitHubUpdateClient(HttpClient http, string owner = AppInfo.GitHubOwner, string repo = AppInfo.GitHubRepo)
     {
         _http = http;
-        _releasesPath = "repos/" + owner + "/" + repo + "/releases?per_page=20";
+        _releasesPath = "repos/" + owner + "/" + repo + "/releases?per_page=100";
+        _repoPath = "repos/" + owner + "/" + repo;
         if (_http.DefaultRequestHeaders.UserAgent.Count == 0)
         {
             _http.DefaultRequestHeaders.UserAgent.ParseAdd(AppInfo.Product + "/" + AppInfo.GetVersion());
@@ -43,6 +45,26 @@ public sealed class GitHubUpdateClient
         var releases = await JsonSerializer.DeserializeAsync<List<GitHubReleaseDto>>(stream, Json, cancellationToken)
             .ConfigureAwait(false);
         return PickLatest(releases, includePrerelease);
+    }
+
+    public async Task<ProjectStats> GetStatsAsync(CancellationToken cancellationToken = default)
+    {
+        var repoTask = _http.GetAsync(_repoPath, cancellationToken);
+        var relTask = _http.GetAsync(_releasesPath, cancellationToken);
+        await Task.WhenAll(repoTask, relTask).ConfigureAwait(false);
+
+        using var repoResponse = await repoTask.ConfigureAwait(false);
+        using var relResponse = await relTask.ConfigureAwait(false);
+        repoResponse.EnsureSuccessStatusCode();
+        relResponse.EnsureSuccessStatusCode();
+
+        await using var repoStream = await repoResponse.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        await using var relStream = await relResponse.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        var repo = await JsonSerializer.DeserializeAsync<GitHubRepoDto>(repoStream, Json, cancellationToken)
+            .ConfigureAwait(false);
+        var releases = await JsonSerializer.DeserializeAsync<List<GitHubReleaseDto>>(relStream, Json, cancellationToken)
+            .ConfigureAwait(false);
+        return ProjectStats.From(repo, releases);
     }
 
     public static UpdateOffer? PickLatest(IEnumerable<GitHubReleaseDto>? releases, bool includePrerelease)

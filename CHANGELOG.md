@@ -2,6 +2,12 @@
 
 All notable changes to PureFusionIRC are listed here. Versions match GitHub Release tags (`v1.0.0-B3`).
 
+## Unreleased
+
+### Added
+- README badges: total GitHub downloads, latest-release downloads, visitors, CI, stars, issues, license
+- **Help → About** loads installer vs portable-zip download counts plus stars/forks/watchers from the GitHub API
+
 ## 1.0.0-B3 — 2026-08-16
 
 Third public beta.

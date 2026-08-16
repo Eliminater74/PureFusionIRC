@@ -600,10 +600,8 @@ public partial class MainWindow : Window
 
     private void About_Click(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show(this,
-            "PureFusionIRC " + GetProductVersion() +
-            "\nWindows C# IRC client inspired by mIRC, with a full theme engine.\nDefault theme: AMOLED Black.\nScripts: JavaScript (.pf.js), not mIRC script.\nUpdates: Help → Check for updates.\n\nMIT License",
-            "About PureFusionIRC");
+        var window = new AboutWindow(UpdateClient(), GetProductVersion()) { Owner = this };
+        window.ShowDialog();
     }
 
     private void WhatsNew_Click(object sender, RoutedEventArgs e)

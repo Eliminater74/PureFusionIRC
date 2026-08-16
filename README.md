@@ -1,5 +1,16 @@
 # PureFusionIRC
 
+[![Release](https://img.shields.io/github/v/release/Eliminater74/PureFusionIRC?include_prereleases&label=release)](https://github.com/Eliminater74/PureFusionIRC/releases/latest)
+[![Installer and zip downloads](https://img.shields.io/github/downloads/Eliminater74/PureFusionIRC/total?logo=github&label=downloads)](https://github.com/Eliminater74/PureFusionIRC/releases)
+[![Latest release downloads](https://img.shields.io/github/downloads/Eliminater74/PureFusionIRC/latest/total?label=latest%20release)](https://github.com/Eliminater74/PureFusionIRC/releases/latest)
+[![Visitors](https://api.visitorbadge.io/api/visitors?path=Eliminater74%2FPureFusionIRC&label=visitors&countColor=%231E88E5)](https://github.com/Eliminater74/PureFusionIRC)
+[![CI](https://img.shields.io/github/actions/workflow/status/Eliminater74/PureFusionIRC/ci.yml?branch=main&label=CI)](https://github.com/Eliminater74/PureFusionIRC/actions)
+[![Stars](https://img.shields.io/github/stars/Eliminater74/PureFusionIRC)](https://github.com/Eliminater74/PureFusionIRC/stargazers)
+[![Issues](https://img.shields.io/github/issues/Eliminater74/PureFusionIRC)](https://github.com/Eliminater74/PureFusionIRC/issues)
+[![License](https://img.shields.io/github/license/Eliminater74/PureFusionIRC)](LICENSE)
+[![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows&logoColor=white)](#requirements)
+[![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet&logoColor=white)](#requirements)
+
 A Windows-only IRC client written in C# / WPF. The layout, feel, and daily workflow are modeled on **mIRC**, with a JSON theme engine you can edit in the app, modern IRCv3 support, and room to grow scripts and plugins — without copying HexChat or mIRC source.
 
 HexChat source in `TEMP/` is **reference only** and is gitignored. mIRC has no public source; the UI follows its visual language: tree of servers/channels, chat pane, nick list, input box, menus, and status bar.
@@ -7,6 +18,17 @@ HexChat source in `TEMP/` is **reference only** and is gitignored. mIRC has no p
 ## Status
 
 **v1.0.0-B3 (beta 3)** is the current [GitHub Release](https://github.com/Eliminater74/PureFusionIRC/releases/tag/v1.0.0-B3).
+
+## Stats
+
+GitHub counts every fetch of a release asset (the Inno `*-setup.exe` and the portable zip). **Help → Check for updates** in the client downloads that same setup.exe, so those installs show up here too.
+
+- **downloads** — all assets on all releases
+- **latest release** — assets on whatever GitHub marks Latest
+- **visitors** — README / repo page hits (approximate; GitHub caches badge images)
+- In the client: **Help → About PureFusionIRC** splits installer vs zip and also shows stars, forks, watchers, and open issues
+
+Repo traffic (clones and unique visitors with more detail) is under GitHub **Insights → Traffic** if you are a collaborator.
 
 Shipped: TCP/TLS connect, identd, SASL PLAIN, NickServ identify, IRCv3 (replies, react, echo-message, chat history, batches, labeled WHOIS), channels and queries, nick list, mIRC colors, clickable URLs, commands, in-app theme editor, settings export/import, JavaScript scripts, tray, reverse-first DCC SEND, daily logs, Inno installer, and in-app updates.
 
@@ -105,7 +127,7 @@ You can also run **Actions → Build and release → Run workflow**, keep versio
 | status: nick  modes  lag  users  server           |
 ```
 
-**View** hides the tree, nick list, or toolbar. **File → Networks…** is the server list (countries, TLS, SASL, NickServ, auto-join, connect on startup). **Help → What's new…** is this changelog; **Check for updates…** downloads a newer setup.exe.
+**View** hides the tree, nick list, or toolbar. **File → Networks…** is the server list (countries, TLS, SASL, NickServ, auto-join, connect on startup). **Help → What's new…** is this changelog; **Check for updates…** downloads a newer setup.exe; **About** shows live GitHub download and star counts.
 
 ## Themes
 

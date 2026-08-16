@@ -78,6 +78,35 @@ public class GitHubUpdateClientTests
     }
 
     [Fact]
+    public void ProjectStats_splits_installer_and_zip_downloads()
+    {
+        var repo = new GitHubRepoDto { StargazersCount = 4, ForksCount = 1, SubscribersCount = 2, OpenIssuesCount = 3 };
+        var releases = new[]
+        {
+            Rel("v1.0.0-B3", false, false,
+                "https://github.com/Eliminater74/PureFusionIRC/releases/download/v1.0.0-B3/PureFusionIRC-1.0.0-B3-setup.exe",
+                downloads: 10),
+            new GitHubReleaseDto
+            {
+                TagName = "v1.0.0-B2",
+                Assets =
+                [
+                    new GitHubAssetDto { Name = "PureFusionIRC-1.0.0-B2-setup.exe", DownloadCount = 7 },
+                    new GitHubAssetDto { Name = "PureFusionIRC-1.0.0-B2-win-x64.zip", DownloadCount = 3 }
+                ]
+            }
+        };
+
+        var stats = ProjectStats.From(repo, releases);
+        Assert.Equal(17, stats.InstallerDownloads);
+        Assert.Equal(3, stats.ZipDownloads);
+        Assert.Equal(20, stats.TotalDownloads);
+        Assert.Equal(2, stats.ReleaseCount);
+        Assert.Equal(4, stats.Stars);
+        Assert.Equal("v1.0.0-B3", stats.LatestTag);
+    }
+
+    [Fact]
     public void Embedded_changelog_is_present()
     {
         var text = ChangelogText.LoadEmbedded();
@@ -85,7 +114,7 @@ public class GitHubUpdateClientTests
         Assert.Contains("Added", text, StringComparison.Ordinal);
     }
 
-    private static GitHubReleaseDto Rel(string tag, bool draft, bool pre, string url, string? name = null) => new()
+    private static GitHubReleaseDto Rel(string tag, bool draft, bool pre, string url, string? name = null, long downloads = 0) => new()
     {
         TagName = tag,
         Draft = draft,
@@ -98,7 +127,8 @@ public class GitHubUpdateClientTests
             {
                 Name = name ?? Path.GetFileName(new Uri(url).AbsolutePath),
                 BrowserDownloadUrl = url,
-                Size = 123
+                Size = 123,
+                DownloadCount = downloads
             }
         ]
     };

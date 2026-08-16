@@ -39,6 +39,9 @@ public sealed class GitHubAssetDto
 
     [JsonPropertyName("size")]
     public long Size { get; set; }
+
+    [JsonPropertyName("download_count")]
+    public long DownloadCount { get; set; }
 }
 
 public sealed class UpdateOffer
@@ -55,4 +58,90 @@ public sealed class UpdateOffer
     public DateTimeOffset? PublishedAt { get; init; }
 
     public bool IsNewerThan(AppVersion current) => Version.IsNewerThan(current);
+}
+
+public sealed class GitHubRepoDto
+{
+    [JsonPropertyName("stargazers_count")]
+    public int StargazersCount { get; set; }
+
+    [JsonPropertyName("forks_count")]
+    public int ForksCount { get; set; }
+
+    [JsonPropertyName("open_issues_count")]
+    public int OpenIssuesCount { get; set; }
+
+    [JsonPropertyName("subscribers_count")]
+    public int SubscribersCount { get; set; }
+
+    [JsonPropertyName("html_url")]
+    public string HtmlUrl { get; set; } = "";
+}
+
+public sealed class ProjectStats
+{
+    public long InstallerDownloads { get; init; }
+    public long ZipDownloads { get; init; }
+    public long OtherDownloads { get; init; }
+    public int ReleaseCount { get; init; }
+    public int Stars { get; init; }
+    public int Forks { get; init; }
+    public int Watchers { get; init; }
+    public int OpenIssues { get; init; }
+    public string? LatestTag { get; init; }
+
+    public long TotalDownloads => InstallerDownloads + ZipDownloads + OtherDownloads;
+
+    public static ProjectStats From(GitHubRepoDto? repo, IEnumerable<GitHubReleaseDto>? releases)
+    {
+        long setup = 0, zip = 0, other = 0;
+        var count = 0;
+        string? latest = null;
+        if (releases is not null)
+        {
+            foreach (var release in releases)
+            {
+                if (release.Draft)
+                {
+                    continue;
+                }
+
+                count++;
+                if (latest is null)
+                {
+                    latest = release.TagName;
+                }
+
+                foreach (var asset in release.Assets)
+                {
+                    var name = asset.Name;
+                    if (name.EndsWith("-setup.exe", StringComparison.OrdinalIgnoreCase))
+                    {
+                        setup += asset.DownloadCount;
+                    }
+                    else if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                    {
+                        zip += asset.DownloadCount;
+                    }
+                    else
+                    {
+                        other += asset.DownloadCount;
+                    }
+                }
+            }
+        }
+
+        return new ProjectStats
+        {
+            InstallerDownloads = setup,
+            ZipDownloads = zip,
+            OtherDownloads = other,
+            ReleaseCount = count,
+            Stars = repo?.StargazersCount ?? 0,
+            Forks = repo?.ForksCount ?? 0,
+            Watchers = repo?.SubscribersCount ?? 0,
+            OpenIssues = repo?.OpenIssuesCount ?? 0,
+            LatestTag = latest
+        };
+    }
 }
