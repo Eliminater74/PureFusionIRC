@@ -1,8 +1,10 @@
 # Roadmap
 
-PureFusionIRC is built in layers. Core (this milestone) is a usable Windows IRC client. Later milestones fill in power-user mIRC/HexChat features without copying their source.
+PureFusionIRC is built in layers. **v1.0.0-B3** is a usable Windows IRC client with identd, IRCv3, DCC SEND, logs, a theme editor, installer, and updates. Later milestones fill in power-user mIRC/HexChat features without copying their source.
 
-## Milestone 0 — Foundation (this pass)
+Living bugs and leftover UI are also in [TODO.md](TODO.md).
+
+## Milestone 0 — Foundation
 
 - [x] Repository ignore rules (`TEMP/`, build outputs, secrets)
 - [x] C# solution: Core library, WPF app, tests
@@ -16,15 +18,18 @@ PureFusionIRC is built in layers. Core (this milestone) is a usable Windows IRC 
 
 ## Milestone 1 — Daily driver
 
-- Channel list (`/list`) UI, ban list editor, notify/friends list
+- [ ] Channel list (`/list`) UI, ban list editor, notify/friends list
 - [x] Ident server (port 113) for networks that still want it
-- NickServ helper + SASL EXTERNAL / SCRAM when needed
-- Per-network encodings, reconnect/backoff polish, channel keys UI
+- [x] NickServ IDENTIFY + SASL PLAIN (EXTERNAL / SCRAM still later)
+- [x] Reconnect, backoff, failover to the next listed server
 - [x] Logging to disk (mIRC-style daily logs)
-- Find in buffer / search logs
-- Switchbar tabs in addition to the tree (mIRC can do both)
-- Spell-as-you-type optional, better URL/click handling
-- Sound/highlight rules, tray icon, balloon/toasts
+- [ ] Find in buffer / search logs
+- [ ] Switchbar tabs in addition to the tree (mIRC can do both)
+- [x] Clickable URLs (open in the default browser)
+- [x] Tray icon, minimize/close-to-tray, highlight/query balloons
+- [ ] Spell-as-you-type
+- [ ] Sound alerts and taskbar flash
+- [ ] Per-network encodings and a dedicated channel-key dialog (keys already work in auto-join `chan key`)
 
 ## Milestone 2 — File transfer and extras
 
@@ -40,18 +45,17 @@ PureFusionIRC is built in layers. Core (this milestone) is a usable Windows IRC 
 - Documented JavaScript API (timers, hooks, menus, storage)
 - Loadable plugin assemblies (`IPureFusionPlugin`) with versioned ABI
 - Optional extra script languages later (Lua or C# scripts) — still not mSL
-- [x] Theme manager window (preview, save JSON under AppData)
+- [x] Theme manager / editor (live preview, save JSON under AppData)
 - Signed script/plugin directory (optional, out of tree)
 
 ## Milestone 4 — Power client
 
-- [x] Full IRCv3 remaining pieces that help users (chathistory, multiline, react, reply)
+- [x] IRCv3 pieces that help users (chathistory, multiline, react, reply, echo-message, labeled WHOIS, batches)
 - bouncer (ZNC/Soju) niceties
 - Multi-window / pop-out buffers (mIRC window habit)
 - Portable mode (settings beside the EXE)
 - [x] Installer (Inno) and GitHub Releases
 - [x] In-app update check (download latest setup.exe)
-- Accessibility pass (high contrast, screen readers)
 - Accessibility pass (high contrast, screen readers)
 
 ## Non-goals

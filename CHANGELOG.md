@@ -15,7 +15,7 @@ Third public beta.
 
 ### Notes
 - Fonts stay in **Tools → Options**; colors are the new editor
-- DCC CHAT, DCC RESUME, and loadable plugin DLLs are still ahead
+- DCC CHAT, DCC RESUME, `/list` UI, banlist windows, switchbar, search-in-buffer, and loadable plugin DLLs are still ahead
 
 ## 1.0.0-B2 — 2026-08-16
 
