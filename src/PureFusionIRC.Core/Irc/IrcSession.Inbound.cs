@@ -304,6 +304,12 @@ public sealed partial class IrcSession
         var space = payload.IndexOf(' ');
         var command = space < 0 ? payload : payload[..space];
         var args = space < 0 ? string.Empty : payload[(space + 1)..];
+        if (command.Equals("DCC", StringComparison.OrdinalIgnoreCase))
+        {
+            Dcc?.HandleCtcp(this, from, payload);
+            return;
+        }
+
         if (reply)
         {
             Print(ServerBuffer, ChatLineKind.Ctcp, $"CTCP {command} reply from {from}: {args}");
@@ -313,10 +319,10 @@ public sealed partial class IrcSession
         Print(ServerBuffer, ChatLineKind.Ctcp, $"CTCP {command} from {from}");
         var response = command.ToUpperInvariant() switch
         {
-            "VERSION" => "VERSION PureFusionIRC 0.1.0",
+            "VERSION" => "VERSION PureFusionIRC 1.0.0-B1",
             "TIME" => "TIME " + DateTime.Now.ToString("R"),
             "PING" => "PING " + args,
-            "CLIENTINFO" => "CLIENTINFO VERSION TIME PING CLIENTINFO",
+            "CLIENTINFO" => "CLIENTINFO VERSION TIME PING CLIENTINFO DCC",
             _ => null
         };
 

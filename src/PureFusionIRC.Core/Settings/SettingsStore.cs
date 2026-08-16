@@ -32,6 +32,7 @@ public sealed class SettingsStore
         PluginsDir = Path.Combine(Root, "plugins");
         LogsDir = Path.Combine(Root, "logs");
         BackupsDir = Path.Combine(Root, "backups");
+        TransfersDir = Path.Combine(Root, "transfers");
     }
 
     public string Root { get; }
@@ -42,6 +43,7 @@ public sealed class SettingsStore
     public string PluginsDir { get; }
     public string LogsDir { get; }
     public string BackupsDir { get; }
+    public string TransfersDir { get; }
 
     public void EnsureLayout()
     {
@@ -51,6 +53,7 @@ public sealed class SettingsStore
         Directory.CreateDirectory(PluginsDir);
         Directory.CreateDirectory(LogsDir);
         Directory.CreateDirectory(BackupsDir);
+        Directory.CreateDirectory(TransfersDir);
     }
 
     public SettingsDocument Load()

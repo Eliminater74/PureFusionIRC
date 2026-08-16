@@ -140,7 +140,7 @@ public sealed class CommandProcessor
         Register("admin", async (c, t) => { await c.Session.SendRawAsync("ADMIN " + c.Arguments, t); return CommandResult.Ok(); });
         Register("info", async (c, t) => { await c.Session.SendRawAsync("INFO", t); return CommandResult.Ok(); });
         Register("stats", async (c, t) => { await c.Session.SendRawAsync("STATS " + c.Arguments, t); return CommandResult.Ok(); });
-        Register("dcc", (_, _) => Task.FromResult(CommandResult.Fail("DCC is not implemented yet. See TODO.md.")));
+        Register("dcc", DccAsync);
         Register("server", (_, _) => Task.FromResult(CommandResult.Fail("Use the Networks window (File → Networks) in this version.")));
     }
 
@@ -459,4 +459,58 @@ public sealed class CommandProcessor
 
     private static bool LooksLikeChannel(string value) =>
         value.Length > 0 && value[0] is '#' or '&' or '+' or '!';
+
+    private static async Task<CommandResult> DccAsync(CommandContext c, CancellationToken t)
+    {
+        if (c.Session.Dcc is null)
+        {
+            return CommandResult.Fail("File transfer is not available.");
+        }
+
+        if (c.Args.Length == 0 || c.Args[0] is "list" or "transfers")
+        {
+            var n = c.Session.Dcc.Transfers.Count;
+            return CommandResult.Ok(n == 0 ? "No file transfers." : n + " transfer(s). Open Tools → File transfers.");
+        }
+
+        var verb = c.Args[0];
+        if (verb is "send")
+        {
+            if (c.Args.Length < 3)
+            {
+                return CommandResult.Fail("Usage: /dcc send <nick> <file path>");
+            }
+
+            var nick = c.Args[1];
+            var path = c.Arguments[(c.Args[0].Length + 1 + nick.Length)..].Trim();
+            if (path.StartsWith('"') && path.EndsWith('"') && path.Length > 1)
+            {
+                path = path[1..^1];
+            }
+
+            try
+            {
+                await c.Session.Dcc.SendFileAsync(c.Session, nick, path, t).ConfigureAwait(false);
+                return CommandResult.Ok("Offered " + Path.GetFileName(path) + " to " + nick + ".");
+            }
+            catch (Exception ex)
+            {
+                return CommandResult.Fail(ex.Message);
+            }
+        }
+
+        if (verb is "close" or "cancel")
+        {
+            var open = c.Session.Dcc.Transfers.FirstOrDefault(x => !x.IsFinished);
+            if (open is null)
+            {
+                return CommandResult.Fail("No active transfer.");
+            }
+
+            c.Session.Dcc.Cancel(open);
+            return CommandResult.Ok("Cancelled " + open.FileName + ".");
+        }
+
+        return CommandResult.Fail("Usage: /dcc send <nick> <file>  |  /dcc list  |  /dcc cancel");
+    }
 }

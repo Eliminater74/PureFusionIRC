@@ -16,6 +16,25 @@ public sealed class IrcConnection : IAsyncDisposable
 
     public bool IsConnected => _tcp?.Connected == true && _stream is not null;
 
+    public System.Net.IPAddress? LocalAddress
+    {
+        get
+        {
+            if (_tcp?.Client.LocalEndPoint is not System.Net.IPEndPoint end)
+            {
+                return null;
+            }
+
+            var address = end.Address;
+            if (address.IsIPv4MappedToIPv6)
+            {
+                address = address.MapToIPv4();
+            }
+
+            return address;
+        }
+    }
+
     public async Task ConnectAsync(IrcEndpoint endpoint, CancellationToken cancellationToken = default)
     {
         await DisposeAsync().ConfigureAwait(false);

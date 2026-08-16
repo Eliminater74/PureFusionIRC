@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Net.Sockets;
 using System.Security.Authentication;
+using System.Net;
 using System.Text;
 using PureFusionIRC.Core.Buffers;
 using PureFusionIRC.Core.Commands;
@@ -74,6 +75,8 @@ public sealed partial class IrcSession : IAsyncDisposable
     public AppSettings Settings { get; }
     public ThemeDefinition Theme { get; set; }
     public CommandProcessor Commands { get; }
+    public Dcc.DccEngine? Dcc { get; set; }
+    public IPAddress? LocalAddress => _connection.LocalAddress;
     public string CurrentNick { get; private set; }
     public SessionState State { get; private set; } = SessionState.Disconnected;
     public IrcBuffer ServerBuffer { get; }

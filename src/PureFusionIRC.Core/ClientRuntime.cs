@@ -21,6 +21,7 @@ public sealed class ClientRuntime : IAsyncDisposable
         Plugins = new PluginFolder(Store.PluginsDir);
         Plugins.Ensure();
         Document = Store.Load();
+        Dcc = new Dcc.DccEngine(Store);
         Theme = Themes.Get(Document.App.ThemeId);
         Scripts.Error += (_, e) => LastScriptError = e.File + ": " + e.Message;
         Scripts.LoadDirectory(Store.ScriptsDir);
@@ -32,6 +33,7 @@ public sealed class ClientRuntime : IAsyncDisposable
     public ThemeDefinition Theme { get; private set; }
     public JavascriptScriptHost Scripts { get; }
     public PluginFolder Plugins { get; }
+    public Dcc.DccEngine Dcc { get; }
     public ObservableCollection<IrcSession> Sessions { get; } = new();
     public string? LastScriptError { get; private set; }
 
@@ -70,6 +72,7 @@ public sealed class ClientRuntime : IAsyncDisposable
     public async Task<IrcSession> ConnectAsync(NetworkProfile network, CancellationToken cancellationToken = default)
     {
         var session = new IrcSession(Guid.NewGuid().ToString("N"), network, Document.App.Identity, Document.App, Theme);
+        session.Dcc = Dcc;
         session.Synchronization = SynchronizationContext.Current;
         session.ThemeRequested += (_, e) => ApplyTheme(e.ThemeId);
         session.PersistRequested += (_, _) => Save();
@@ -118,6 +121,7 @@ public sealed class ClientRuntime : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await DisconnectAllAsync().ConfigureAwait(false);
+        Dcc.Dispose();
         foreach (var session in Sessions)
         {
             await session.DisposeAsync().ConfigureAwait(false);
