@@ -1,0 +1,33 @@
+{
+  "id": "classic-light",
+  "name": "Classic Light",
+  "description": "mIRC-inspired light panels, dark text, pale gray chrome.",
+  "isDark": false,
+  "ui": {
+    "windowBackground": "#F0F0F0",
+    "panelBackground": "#FFFFFF",
+    "chromeBackground": "#E8E8E8",
+    "chatBackground": "#FFFFFF",
+    "inputBackground": "#FFFFFF",
+    "treeBackground": "#F7F7F7",
+    "nickListBackground": "#F7F7F7",
+    "statusBackground": "#E8E8E8",
+    "border": "#B0B0B0",
+    "text": "#1A1A1A",
+    "dimText": "#5A5A5A",
+    "accent": "#1565C0",
+    "selection": "#BBDEFB",
+    "highlight": "#E65100",
+    "selfNick": "#00695C",
+    "otherNick": "#0D47A1",
+    "action": "#6A1B9A",
+    "link": "#1565C0",
+    "error": "#B71C1C",
+    "join": "#2E7D32",
+    "part": "#C62828",
+    "channel": "#F9A825",
+    "query": "#0277BD",
+    "unread": "#2E7D32",
+    "mention": "#EF6C00"
+  }
+}

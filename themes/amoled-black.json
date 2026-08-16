@@ -1,0 +1,33 @@
+{
+  "id": "amoled-black",
+  "name": "AMOLED Black",
+  "description": "Pure black (#000000) with white text. Default OLED theme.",
+  "isDark": true,
+  "ui": {
+    "windowBackground": "#000000",
+    "panelBackground": "#0A0A0A",
+    "chromeBackground": "#111111",
+    "chatBackground": "#000000",
+    "inputBackground": "#0D0D0D",
+    "treeBackground": "#050505",
+    "nickListBackground": "#050505",
+    "statusBackground": "#111111",
+    "border": "#2A2A2A",
+    "text": "#F5F5F5",
+    "dimText": "#A0A0A0",
+    "accent": "#4FC3F7",
+    "selection": "#1565C0",
+    "highlight": "#FF8A65",
+    "selfNick": "#80CBC4",
+    "otherNick": "#90CAF9",
+    "action": "#CE93D8",
+    "link": "#64B5F6",
+    "error": "#EF9A9A",
+    "join": "#A5D6A7",
+    "part": "#FFAB91",
+    "channel": "#FFE082",
+    "query": "#81D4FA",
+    "unread": "#81C784",
+    "mention": "#FFCC80"
+  }
+}

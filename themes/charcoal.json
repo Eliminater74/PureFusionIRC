@@ -1,0 +1,33 @@
+{
+  "id": "charcoal",
+  "name": "Charcoal",
+  "description": "Softer dark gray than AMOLED; easier on bright rooms.",
+  "isDark": true,
+  "ui": {
+    "windowBackground": "#1B1B1B",
+    "panelBackground": "#242424",
+    "chromeBackground": "#2A2A2A",
+    "chatBackground": "#1E1E1E",
+    "inputBackground": "#2A2A2A",
+    "treeBackground": "#202020",
+    "nickListBackground": "#202020",
+    "statusBackground": "#2A2A2A",
+    "border": "#3C3C3C",
+    "text": "#EEEEEE",
+    "dimText": "#B0B0B0",
+    "accent": "#80CBC4",
+    "selection": "#37474F",
+    "highlight": "#FFAB91",
+    "selfNick": "#80CBC4",
+    "otherNick": "#90CAF9",
+    "action": "#CE93D8",
+    "link": "#64B5F6",
+    "error": "#EF9A9A",
+    "join": "#A5D6A7",
+    "part": "#FFAB91",
+    "channel": "#FFE082",
+    "query": "#81D4FA",
+    "unread": "#81C784",
+    "mention": "#FFCC80"
+  }
+}
