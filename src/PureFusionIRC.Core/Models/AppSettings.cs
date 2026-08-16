@@ -60,6 +60,11 @@ public sealed class AppSettings
     public int MaxBufferLines { get; set; } = 5000;
     public List<string> HighlightWords { get; set; } = new();
     public bool ShowMotd { get; set; } = true;
+    public bool MinimizeToTray { get; set; } = true;
+    public bool CloseToTray { get; set; }
+    public bool TrayNotifications { get; set; } = true;
+    /// <summary>Bumped for one-time UI defaults (tray). Do not reuse NetworkListRevision.</summary>
+    public int UiRevision { get; set; }
     /// <summary>Bumped when built-in country server lists change so AppData picks up new entries.</summary>
     public int NetworkListRevision { get; set; }
 }

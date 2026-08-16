@@ -20,6 +20,9 @@ public partial class OptionsWindow : Window
         StripColorBox.IsChecked = app.StripColors;
         LogBox.IsChecked = app.LogBuffers;
         MotdBox.IsChecked = app.ShowMotd;
+        MinimizeTrayBox.IsChecked = app.MinimizeToTray;
+        CloseTrayBox.IsChecked = app.CloseToTray;
+        NotifyTrayBox.IsChecked = app.TrayNotifications;
         TimestampBox.Text = app.TimestampFormat;
         FontBox.Text = app.FontFamily;
         FontSizeBox.Text = app.FontSize.ToString(CultureInfo.InvariantCulture);
@@ -39,6 +42,9 @@ public partial class OptionsWindow : Window
         app.StripColors = StripColorBox.IsChecked == true;
         app.LogBuffers = LogBox.IsChecked == true;
         app.ShowMotd = MotdBox.IsChecked == true;
+        app.MinimizeToTray = MinimizeTrayBox.IsChecked == true;
+        app.CloseToTray = CloseTrayBox.IsChecked == true;
+        app.TrayNotifications = NotifyTrayBox.IsChecked == true;
         app.TimestampFormat = string.IsNullOrWhiteSpace(TimestampBox.Text) ? "HH:mm:ss" : TimestampBox.Text.Trim();
         app.FontFamily = string.IsNullOrWhiteSpace(FontBox.Text) ? "Consolas" : FontBox.Text.Trim();
         if (double.TryParse(FontSizeBox.Text, CultureInfo.InvariantCulture, out var size) && size >= 8 && size <= 36)

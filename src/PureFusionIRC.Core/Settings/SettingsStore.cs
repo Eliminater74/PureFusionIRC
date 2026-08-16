@@ -70,10 +70,25 @@ public sealed class SettingsStore
 
         document.App = SecretStore.UnprotectSettings(document.App);
         document.Networks = document.Networks.Select(SecretStore.UnprotectNetwork).ToList();
+        var dirty = false;
         if (document.App.NetworkListRevision < DefaultNetworks.Revision)
         {
             DefaultNetworks.MergeInto(document.Networks);
             document.App.NetworkListRevision = DefaultNetworks.Revision;
+            dirty = true;
+        }
+
+        if (document.App.UiRevision < 1)
+        {
+            document.App.MinimizeToTray = true;
+            document.App.CloseToTray = false;
+            document.App.TrayNotifications = true;
+            document.App.UiRevision = 1;
+            dirty = true;
+        }
+
+        if (dirty)
+        {
             Save(document);
         }
 
