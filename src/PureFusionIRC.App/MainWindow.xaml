@@ -67,15 +67,13 @@
                 <MenuItem Header="_About PureFusionIRC" Click="About_Click"/>
             </MenuItem>
         </Menu>
-        <ToolBarTray x:Name="ToolbarTray" DockPanel.Dock="Top" Background="{DynamicResource ChromeBackgroundBrush}">
-            <ToolBar Band="0" BandIndex="0">
-                <Button Content="Networks" Click="Networks_Click"/>
-                <Button Content="Connect" Click="Connect_Click"/>
-                <Button Content="Disconnect" Click="Disconnect_Click"/>
-                <Separator/>
-                <Button Content="Options" Click="Options_Click"/>
-            </ToolBar>
-        </ToolBarTray>
+        <StackPanel x:Name="ToolbarTray" DockPanel.Dock="Top" Orientation="Horizontal"
+                    Background="{DynamicResource ChromeBackgroundBrush}">
+            <Button Content="Networks" MinWidth="96" Margin="8,6,4,6" Click="Networks_Click"/>
+            <Button Content="Connect" MinWidth="96" Margin="4,6" Click="Connect_Click"/>
+            <Button Content="Disconnect" MinWidth="96" Margin="4,6" Click="Disconnect_Click"/>
+            <Button Content="Options" MinWidth="96" Margin="4,6,8,6" Click="Options_Click"/>
+        </StackPanel>
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBarItem>
                 <TextBlock x:Name="StatusNick" Text="(not connected)"/>
