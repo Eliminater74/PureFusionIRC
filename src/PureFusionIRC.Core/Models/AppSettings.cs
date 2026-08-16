@@ -187,6 +187,7 @@ public sealed class AppSettings
     public bool MinimizeToTray { get; set; } = true;
     public bool CloseToTray { get; set; }
     public bool TrayNotifications { get; set; } = true;
+    public bool IdentdEnabled { get; set; } = true;
     public bool DccEnabled { get; set; } = true;
     public bool DccPreferReverse { get; set; } = true;
     public string DccDownloadFolder { get; set; } = "";

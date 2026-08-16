@@ -17,7 +17,7 @@ PureFusionIRC is built in layers. Core (this milestone) is a usable Windows IRC 
 ## Milestone 1 — Daily driver
 
 - Channel list (`/list`) UI, ban list editor, notify/friends list
-- Ident server (port 113) for networks that still want it
+- [x] Ident server (port 113) for networks that still want it
 - NickServ helper + SASL EXTERNAL / SCRAM when needed
 - Per-network encodings, reconnect/backoff polish, channel keys UI
 - [x] Logging to disk (mIRC-style daily logs)

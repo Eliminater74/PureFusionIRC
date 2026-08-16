@@ -60,7 +60,11 @@
                     <Label Content="Username"/>
                     <TextBox x:Name="UserBox" Margin="0,0,0,8"/>
                     <Label Content="Real name"/>
-                    <TextBox x:Name="RealBox"/>
+                    <TextBox x:Name="RealBox" Margin="0,0,0,12"/>
+                    <CheckBox x:Name="IdentdBox" Margin="0,0,0,8">
+                        <TextBlock TextWrapping="Wrap"
+                                   Text="Listen for ident (TCP 113). IRCnet and some EFnet servers wait on this during login. Windows usually needs Administrator to bind 113."/>
+                    </CheckBox>
                 </StackPanel>
             </TabItem>
         </TabControl>

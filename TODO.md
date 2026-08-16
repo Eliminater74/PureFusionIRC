@@ -4,7 +4,7 @@ Living list for the next review after core functionality. Strike items as they l
 
 ## Protocol
 
-- [ ] Identd listener for networks that still fingerprint ident
+- [x] Identd listener for networks that still fingerprint ident (TCP 113)
 - [ ] SASL SCRAM-SHA-256 and EXTERNAL
 - [x] DCC SEND (reverse-first) + incoming prompt + transfer window
 - [x] In-app update check + changelog + installer download

@@ -37,6 +37,7 @@ public partial class OptionsWindow : Window
         AltBox.Text = id.AlternativeNick;
         UserBox.Text = id.Username;
         RealBox.Text = id.RealName;
+        IdentdBox.IsChecked = app.IdentdEnabled;
     }
 
     private void Ok_Click(object sender, RoutedEventArgs e)
@@ -68,6 +69,8 @@ public partial class OptionsWindow : Window
         app.Identity.AlternativeNick = AltBox.Text.Trim();
         app.Identity.Username = UserBox.Text.Trim();
         app.Identity.RealName = RealBox.Text.Trim();
+        app.IdentdEnabled = IdentdBox.IsChecked == true;
+        _runtime.ApplyIdentd();
         _runtime.Save();
         DialogResult = true;
         Close();

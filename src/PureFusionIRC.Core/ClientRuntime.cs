@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using PureFusionIRC.Core.Buffers;
+using PureFusionIRC.Core.Ident;
 using PureFusionIRC.Core.Irc;
 using PureFusionIRC.Core.Logging;
 using PureFusionIRC.Core.Models;
@@ -24,6 +25,7 @@ public sealed class ClientRuntime : IAsyncDisposable
         Document = Store.Load();
         Dcc = new Dcc.DccEngine(Store);
         Logs = new BufferLogWriter(Store);
+        Identd = new IdentdServer(() => Document.App.Identity.Username);
         Theme = Themes.Get(Document.App.ThemeId);
         Scripts.Error += (_, e) => LastScriptError = e.File + ": " + e.Message;
         Scripts.LoadDirectory(Store.ScriptsDir);
@@ -37,6 +39,7 @@ public sealed class ClientRuntime : IAsyncDisposable
     public PluginFolder Plugins { get; }
     public Dcc.DccEngine Dcc { get; }
     public BufferLogWriter Logs { get; }
+    public IdentdServer Identd { get; }
     public ObservableCollection<IrcSession> Sessions { get; } = new();
     public string? LastScriptError { get; private set; }
 
@@ -104,6 +107,12 @@ public sealed class ClientRuntime : IAsyncDisposable
             await session.Commands.ExecuteAsync(session, session.ServerBuffer, raw).ConfigureAwait(false);
         }, text => session.Print(session.ServerBuffer, ChatLineKind.Info, text));
 
+        var identNote = ApplyIdentd();
+        if (!string.IsNullOrEmpty(identNote))
+        {
+            session.Print(session.ServerBuffer, ChatLineKind.Info, identNote);
+        }
+
         await session.ConnectAsync(cancellationToken).ConfigureAwait(false);
         return session;
     }
@@ -129,6 +138,7 @@ public sealed class ClientRuntime : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await DisconnectAllAsync().ConfigureAwait(false);
+        Identd.Dispose();
         Dcc.Dispose();
         Logs.Dispose();
         foreach (var session in Sessions)
@@ -137,6 +147,30 @@ public sealed class ClientRuntime : IAsyncDisposable
         }
 
         GC.SuppressFinalize(this);
+    }
+
+    public string? ApplyIdentd()
+    {
+        if (!Document.App.IdentdEnabled)
+        {
+            Identd.Stop();
+            return null;
+        }
+
+        if (Identd.IsRunning)
+        {
+            return null;
+        }
+
+        var error = Identd.Start();
+        if (error is not null)
+        {
+            return error;
+        }
+
+        return "Identd listening on TCP " + Identd.Port
+            + " as " + IdentdProtocol.SanitizeUser(Document.App.Identity.Username)
+            + ". Bind it before login so IRCnet can finish ident.";
     }
 
     private void ForwardScriptLine(IrcSession session, LineEventArgs e)
