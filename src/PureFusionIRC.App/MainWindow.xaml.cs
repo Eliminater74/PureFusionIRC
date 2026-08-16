@@ -39,12 +39,21 @@ public partial class MainWindow : Window
         ApplyLayoutFlags();
         _runtime.ThemeChanged += (_, _) => Dispatcher.Invoke(() => ApplyTheme(_runtime.Theme));
         _runtime.SessionAdded += (_, session) => Dispatcher.Invoke(() => HookSession(session));
-        Loaded += (_, _) => InputBox.Focus();
+        Loaded += MainWindow_Loaded;
         Closing += (_, _) =>
         {
             _runtime.Save();
             _ = _runtime.DisposeAsync().AsTask();
         };
+    }
+
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        InputBox.Focus();
+        if (!File.Exists(_runtime.Store.SettingsPath) && _runtime.Sessions.Count == 0)
+        {
+            Networks_Click(this, new RoutedEventArgs());
+        }
     }
 
     private void HookSession(IrcSession session)
