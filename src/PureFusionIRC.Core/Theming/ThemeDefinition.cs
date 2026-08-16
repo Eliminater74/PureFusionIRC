@@ -7,19 +7,45 @@ namespace PureFusionIRC.Core.Theming;
 public sealed class ThemeUiColors
 {
     public string WindowBackground { get; set; } = "#000000";
-    public string PanelBackground { get; set; } = "#0A0A0A";
-    public string ChromeBackground { get; set; } = "#111111";
+    public string PanelBackground { get; set; } = "#070B12";
+    public string ChromeBackground { get; set; } = "#0A1522";
     public string ChatBackground { get; set; } = "#000000";
-    public string InputBackground { get; set; } = "#0D0D0D";
-    public string TreeBackground { get; set; } = "#050505";
-    public string NickListBackground { get; set; } = "#050505";
-    public string StatusBackground { get; set; } = "#111111";
-    public string Border { get; set; } = "#2A2A2A";
+    public string InputBackground { get; set; } = "#0A1624";
+    public string TreeBackground { get; set; } = "#05080D";
+    public string NickListBackground { get; set; } = "#05080D";
+    public string StatusBackground { get; set; } = "#0A1522";
+    public string Border { get; set; } = "#2A5A8C";
     public string Text { get; set; } = "#F5F5F5";
-    public string DimText { get; set; } = "#A0A0A0";
+    public string DimText { get; set; } = "#A8C0D8";
     public string Accent { get; set; } = "#4FC3F7";
     public string Selection { get; set; } = "#1565C0";
     public string Highlight { get; set; } = "#FF8A65";
+    /// <summary>Empty values are filled at apply time so older theme JSON still loads.</summary>
+    public string ButtonBackground { get; set; } = "";
+    public string ButtonHover { get; set; } = "";
+    public string ButtonPressed { get; set; } = "";
+    public string ButtonBorder { get; set; } = "";
+    public string MenuBackground { get; set; } = "";
+    public string MenuHighlight { get; set; } = "";
+    public string MenuHighlightText { get; set; } = "";
+    public string AccentFill { get; set; } = "";
+    public string AccentOn { get; set; } = "";
+
+    public void ApplyChromeFallbacks(bool isDark)
+    {
+        ButtonBackground = Fallback(ButtonBackground, isDark ? "#102A43" : "#E3F2FD");
+        ButtonHover = Fallback(ButtonHover, isDark ? "#1A4A73" : "#BBDEFB");
+        ButtonPressed = Fallback(ButtonPressed, isDark ? "#0D3A66" : "#90CAF9");
+        ButtonBorder = Fallback(ButtonBorder, isDark ? "#4FC3F7" : "#1565C0");
+        MenuBackground = Fallback(MenuBackground, isDark ? "#0B1828" : "#FFFFFF");
+        MenuHighlight = Fallback(MenuHighlight, isDark ? "#1565C0" : "#BBDEFB");
+        MenuHighlightText = Fallback(MenuHighlightText, isDark ? "#FFFFFF" : "#0D47A1");
+        AccentFill = Fallback(AccentFill, isDark ? "#1E88E5" : "#1565C0");
+        AccentOn = Fallback(AccentOn, "#FFFFFF");
+    }
+
+    private static string Fallback(string value, string fallback) =>
+        string.IsNullOrWhiteSpace(value) ? fallback : value;
     public string SelfNick { get; set; } = "#80CBC4";
     public string OtherNick { get; set; } = "#90CAF9";
     public string Action { get; set; } = "#CE93D8";
@@ -78,7 +104,18 @@ public static class BuiltInThemes
         Name = "AMOLED Black",
         Description = "Pure black (#000000) with white text. Default OLED theme.",
         IsDark = true,
-        Ui = new ThemeUiColors(),
+        Ui = new ThemeUiColors
+        {
+            ButtonBackground = "#102A43",
+            ButtonHover = "#1A4A73",
+            ButtonPressed = "#0D3A66",
+            ButtonBorder = "#4FC3F7",
+            MenuBackground = "#0B1828",
+            MenuHighlight = "#1565C0",
+            MenuHighlightText = "#FFFFFF",
+            AccentFill = "#1E88E5",
+            AccentOn = "#FFFFFF"
+        },
         Palette = MircPalette.Classic
     };
 
@@ -92,17 +129,26 @@ public static class BuiltInThemes
         {
             WindowBackground = "#F0F0F0",
             PanelBackground = "#FFFFFF",
-            ChromeBackground = "#E8E8E8",
+            ChromeBackground = "#E3F2FD",
             ChatBackground = "#FFFFFF",
             InputBackground = "#FFFFFF",
-            TreeBackground = "#F7F7F7",
-            NickListBackground = "#F7F7F7",
-            StatusBackground = "#E8E8E8",
-            Border = "#B0B0B0",
+            TreeBackground = "#F5FAFF",
+            NickListBackground = "#F5FAFF",
+            StatusBackground = "#E3F2FD",
+            Border = "#90CAF9",
             Text = "#1A1A1A",
             DimText = "#5A5A5A",
             Accent = "#1565C0",
-            Selection = "#BBDEFB",
+            Selection = "#90CAF9",
+            ButtonBackground = "#E3F2FD",
+            ButtonHover = "#BBDEFB",
+            ButtonPressed = "#90CAF9",
+            ButtonBorder = "#1565C0",
+            MenuBackground = "#FFFFFF",
+            MenuHighlight = "#BBDEFB",
+            MenuHighlightText = "#0D47A1",
+            AccentFill = "#1565C0",
+            AccentOn = "#FFFFFF",
             Highlight = "#E65100",
             SelfNick = "#00695C",
             OtherNick = "#0D47A1",
@@ -135,17 +181,26 @@ public static class BuiltInThemes
         {
             WindowBackground = "#1B1B1B",
             PanelBackground = "#242424",
-            ChromeBackground = "#2A2A2A",
+            ChromeBackground = "#1A2430",
             ChatBackground = "#1E1E1E",
-            InputBackground = "#2A2A2A",
-            TreeBackground = "#202020",
-            NickListBackground = "#202020",
-            StatusBackground = "#2A2A2A",
-            Border = "#3C3C3C",
+            InputBackground = "#1C2830",
+            TreeBackground = "#1A2026",
+            NickListBackground = "#1A2026",
+            StatusBackground = "#1A2430",
+            Border = "#3E6A80",
             Text = "#EEEEEE",
-            DimText = "#B0B0B0",
+            DimText = "#B0C4CB",
             Accent = "#80CBC4",
-            Selection = "#37474F",
+            Selection = "#1565C0",
+            ButtonBackground = "#1C3344",
+            ButtonHover = "#274A62",
+            ButtonPressed = "#163044",
+            ButtonBorder = "#64B5F6",
+            MenuBackground = "#1A2830",
+            MenuHighlight = "#1565C0",
+            MenuHighlightText = "#FFFFFF",
+            AccentFill = "#0288D1",
+            AccentOn = "#FFFFFF",
             Highlight = "#FFAB91",
             SelfNick = "#80CBC4",
             OtherNick = "#90CAF9",
@@ -209,11 +264,9 @@ public sealed class ThemeCatalog
         Directory.CreateDirectory(UserThemesDirectory);
         foreach (var theme in BuiltInThemes.All)
         {
+            // Refresh stock themes so shipped color updates show up; extra *.json files are left alone.
             var path = Path.Combine(UserThemesDirectory, theme.Id + ".json");
-            if (!File.Exists(path))
-            {
-                File.WriteAllText(path, JsonSerializer.Serialize(theme, SettingsStore.JsonOptions));
-            }
+            File.WriteAllText(path, JsonSerializer.Serialize(theme, SettingsStore.JsonOptions));
         }
     }
 }

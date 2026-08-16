@@ -76,7 +76,7 @@
         <StackPanel x:Name="ToolbarTray" DockPanel.Dock="Top" Orientation="Horizontal"
                     Background="{DynamicResource ChromeBackgroundBrush}">
             <Button Content="Networks" MinWidth="96" Margin="8,6,4,6" Click="Networks_Click"/>
-            <Button Content="Connect" MinWidth="96" Margin="4,6" Click="Connect_Click"/>
+            <Button Content="Connect" MinWidth="96" Margin="4,6" Style="{StaticResource AccentButton}" Click="Connect_Click"/>
             <Button Content="Disconnect" MinWidth="96" Margin="4,6" Click="Disconnect_Click"/>
             <Button Content="Options" MinWidth="96" Margin="4,6" Click="Options_Click"/>
             <Button Content="Transfers" MinWidth="96" Margin="4,6" Click="Transfers_Click"
@@ -126,15 +126,12 @@
                         </ContextMenu>
                     </TreeView.ContextMenu>
                     <TreeView.ItemContainerStyle>
-                        <Style TargetType="TreeViewItem">
-                            <Setter Property="IsExpanded" Value="True"/>
-                            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
-                        </Style>
+                        <Style TargetType="TreeViewItem" BasedOn="{StaticResource PfTreeViewItem}"/>
                     </TreeView.ItemContainerStyle>
                 </TreeView>
             </DockPanel>
             <GridSplitter Grid.Row="0" Grid.Column="1" Width="4" HorizontalAlignment="Stretch"
-                          Background="{DynamicResource BorderBrushKey}"/>
+                          Background="{DynamicResource ButtonBorderBrush}"/>
             <DockPanel Grid.Row="0" Grid.Column="2">
                 <Border x:Name="TopicStrip" DockPanel.Dock="Top"
                         MinHeight="30"
@@ -168,7 +165,7 @@
                 <chat:ChatView x:Name="Chat"/>
             </DockPanel>
             <GridSplitter Grid.Row="0" Grid.Column="3" Width="4" HorizontalAlignment="Stretch"
-                          Background="{DynamicResource BorderBrushKey}"/>
+                          Background="{DynamicResource ButtonBorderBrush}"/>
             <DockPanel Grid.Row="0" Grid.Column="4">
                 <TextBlock x:Name="NickHeader" DockPanel.Dock="Top" Text="Nicks" Margin="8,6,8,4"
                            Foreground="{DynamicResource DimTextBrush}" FontSize="11"/>

@@ -8,6 +8,7 @@ public static class ThemeApplication
 {
     public static void Apply(ThemeDefinition theme, ResourceDictionary resources)
     {
+        theme.Ui.ApplyChromeFallbacks(theme.IsDark);
         Set(resources, "WindowBackgroundBrush", theme.Ui.WindowBackground);
         Set(resources, "PanelBackgroundBrush", theme.Ui.PanelBackground);
         Set(resources, "ChromeBackgroundBrush", theme.Ui.ChromeBackground);
@@ -21,6 +22,15 @@ public static class ThemeApplication
         Set(resources, "DimTextBrush", theme.Ui.DimText);
         Set(resources, "AccentBrush", theme.Ui.Accent);
         Set(resources, "SelectionBrush", theme.Ui.Selection);
+        Set(resources, "ButtonBackgroundBrush", theme.Ui.ButtonBackground);
+        Set(resources, "ButtonHoverBrush", theme.Ui.ButtonHover);
+        Set(resources, "ButtonPressedBrush", theme.Ui.ButtonPressed);
+        Set(resources, "ButtonBorderBrush", theme.Ui.ButtonBorder);
+        Set(resources, "MenuBackgroundBrush", theme.Ui.MenuBackground);
+        Set(resources, "MenuHighlightBrush", theme.Ui.MenuHighlight);
+        Set(resources, "MenuHighlightTextBrush", theme.Ui.MenuHighlightText);
+        Set(resources, "AccentFillBrush", theme.Ui.AccentFill);
+        Set(resources, "AccentOnBrush", theme.Ui.AccentOn);
         Set(resources, "HighlightBrush", theme.Ui.Highlight);
         Set(resources, "SelfNickBrush", theme.Ui.SelfNick);
         Set(resources, "OtherNickBrush", theme.Ui.OtherNick);
@@ -43,6 +53,14 @@ public static class ThemeApplication
         resources["ThemeFontFamily"] = new FontFamily("Consolas");
         resources["IsDarkTheme"] = theme.IsDark;
         resources["CurrentTheme"] = theme;
+        resources[SystemColors.HighlightBrushKey] = resources["SelectionBrush"];
+        resources[SystemColors.InactiveSelectionHighlightBrushKey] = resources["ButtonBackgroundBrush"];
+        resources[SystemColors.HighlightTextBrushKey] = resources["MenuHighlightTextBrush"];
+        resources[SystemColors.MenuBrushKey] = resources["MenuBackgroundBrush"];
+        resources[SystemColors.MenuBarBrushKey] = resources["ChromeBackgroundBrush"];
+        resources[SystemColors.ControlBrushKey] = resources["PanelBackgroundBrush"];
+        resources[SystemColors.WindowBrushKey] = resources["WindowBackgroundBrush"];
+        resources[SystemColors.GrayTextBrushKey] = resources["DimTextBrush"];
     }
 
     public static Color Parse(string hex) =>

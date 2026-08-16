@@ -81,9 +81,9 @@ You can also run **Actions → Build and release → Run workflow**, keep versio
 
 ## Default themes
 
-- **AMOLED Black** — `#000000` chrome and chat, white text (default)
-- **Classic Light** — mIRC-like pale panels, dark text
-- **Charcoal** — softer dark gray, not OLED-black
+- **AMOLED Black** — true-black chat, navy chrome, cyan button/menu accents (default)
+- **Classic Light** — pale blue chrome, dark text
+- **Charcoal** — softer dark gray panels with bluish controls
 
 Switch from **View → Theme** or `/theme <id>`. Export/import themes with the rest of your settings from **Tools → Export settings** / **Import settings**.
 

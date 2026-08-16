@@ -20,7 +20,8 @@
             <Button x:Name="AddButton" Content="Add" Width="90" Margin="0,0,8,0" Click="AddButton_Click"/>
             <Button x:Name="RemoveButton" Content="Remove" Width="90" Margin="0,0,8,0" Click="RemoveButton_Click"/>
             <Button x:Name="SaveButton" Content="Save" Width="90" Margin="0,0,8,0" Click="SaveButton_Click"/>
-            <Button x:Name="ConnectButton" Content="Connect" Width="110" Margin="0,0,8,0" Click="ConnectButton_Click"/>
+            <Button x:Name="ConnectButton" Content="Connect" Width="110" Margin="0,0,8,0"
+                    Style="{StaticResource AccentButton}" Click="ConnectButton_Click"/>
             <Button Content="Close" Width="90" Click="Close_Click"/>
         </StackPanel>
         <Grid>
@@ -35,14 +36,11 @@
                           ItemTemplate="{StaticResource CountryTemplate}"
                           SelectedItemChanged="NetworkTree_SelectedItemChanged">
                     <TreeView.ItemContainerStyle>
-                        <Style TargetType="TreeViewItem">
-                            <Setter Property="IsExpanded" Value="True"/>
-                            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
-                        </Style>
+                        <Style TargetType="TreeViewItem" BasedOn="{StaticResource PfTreeViewItem}"/>
                     </TreeView.ItemContainerStyle>
                 </TreeView>
             </DockPanel>
-            <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushKey}"/>
+            <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="{DynamicResource ButtonBorderBrush}"/>
             <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
                 <Grid Margin="8,0,0,0">
                     <Grid.ColumnDefinitions>
