@@ -1,0 +1,20 @@
+<UserControl x:Class="PureFusionIRC.App.Chat.ChatView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Border BorderBrush="{DynamicResource BorderBrushKey}" BorderThickness="1"
+            Background="{DynamicResource ChatBackgroundBrush}">
+        <FlowDocumentScrollViewer x:Name="Scroller"
+                                  IsToolBarVisible="False"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  Background="{DynamicResource ChatBackgroundBrush}">
+            <FlowDocument x:Name="Document"
+                          FontFamily="{DynamicResource ThemeFontFamily}"
+                          FontSize="13"
+                          PagePadding="8,6"
+                          LineHeight="18"
+                          Foreground="{DynamicResource PrimaryTextBrush}"
+                          Background="{DynamicResource ChatBackgroundBrush}"/>
+        </FlowDocumentScrollViewer>
+    </Border>
+</UserControl>
