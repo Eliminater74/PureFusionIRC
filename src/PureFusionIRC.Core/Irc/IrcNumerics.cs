@@ -1,0 +1,64 @@
+namespace PureFusionIRC.Core.Irc;
+
+/// <summary>Well-known numerics we special-case. Unknown numerics still print to the server buffer.</summary>
+public static class IrcNumerics
+{
+    public const string Welcome = "001";
+    public const string YourHost = "002";
+    public const string Created = "003";
+    public const string MyInfo = "004";
+    public const string ISupport = "005";
+    public const string UModeIs = "221";
+    public const string LUserClient = "251";
+    public const string LUserOp = "252";
+    public const string LUserUnknown = "253";
+    public const string LUserChannels = "254";
+    public const string LUserMe = "255";
+    public const string LocalUsers = "265";
+    public const string GlobalUsers = "266";
+    public const string Away = "301";
+    public const string UnAway = "305";
+    public const string NowAway = "306";
+    public const string WhoisUser = "311";
+    public const string WhoisServer = "312";
+    public const string WhoisOperator = "313";
+    public const string WhoisIdle = "317";
+    public const string EndOfWhois = "318";
+    public const string WhoisChannels = "319";
+    public const string WhoisAccount = "330";
+    public const string Topic = "332";
+    public const string TopicWhoTime = "333";
+    public const string Inviting = "341";
+    public const string Version = "351";
+    public const string WhoReply = "352";
+    public const string NameReply = "353";
+    public const string EndOfWho = "315";
+    public const string EndOfNames = "366";
+    public const string BanList = "367";
+    public const string EndOfBanList = "368";
+    public const string Motd = "372";
+    public const string MotdStart = "375";
+    public const string EndOfMotd = "376";
+    public const string NoMotd = "422";
+    public const string NoSuchNick = "401";
+    public const string NoSuchChannel = "403";
+    public const string CannotSendToChan = "404";
+    public const string UnknownCommand = "421";
+    public const string ErroneousNickname = "432";
+    public const string NicknameInUse = "433";
+    public const string NotOnChannel = "442";
+    public const string UserOnChannel = "443";
+    public const string NotRegistered = "451";
+    public const string NeedMoreParams = "461";
+    public const string ChannelIsFull = "471";
+    public const string InviteOnlyChan = "473";
+    public const string BannedFromChan = "474";
+    public const string BadChannelKey = "475";
+    public const string ChanOPrivsNeeded = "482";
+    public const string LoggedIn = "900";
+    public const string SaslSuccess = "903";
+    public const string SaslFail = "904";
+    public const string SaslTooLong = "905";
+    public const string SaslAborted = "906";
+    public const string SaslAlready = "907";
+}
