@@ -6,7 +6,7 @@ HexChat source in `TEMP/` is **reference only** and is gitignored. mIRC has no p
 
 ## Status
 
-Core client: connect over TCP or TLS, register, talk, join channels, nick list, commands, themes, settings import/export, and a JavaScript script host. See [ROADMAP.md](ROADMAP.md) and [TODO.md](TODO.md) for what comes next (DCC, ident, fuller IRCv3, plugin DLLs).
+**v1.0.0-B1 (beta 1).** Core client: connect over TCP or TLS, register, talk, join channels, nick list, commands, themes, settings import/export, JavaScript scripts, tray, and an Inno Setup installer. See [ROADMAP.md](ROADMAP.md) and [TODO.md](TODO.md) for what comes next (DCC, ident, fuller IRCv3, plugin DLLs).
 
 ## Requirements
 
@@ -37,6 +37,36 @@ dotnet publish src/PureFusionIRC.App -c Release -r win-x64 --self-contained fals
 `src/PureFusionIRC.App` is only the C# WPF project name (`App.xaml`). It is not an Apple app bundle.
 
 Data lives under `%AppData%\PureFusionIRC\` (settings, networks, themes, scripts, logs). Built-in themes are shipped with the app; user themes can be added without rebuilding.
+
+## Installer (Inno Setup)
+
+GitHub Releases ship `PureFusionIRC-<version>-setup.exe` (self-contained x64) and a portable zip. The first public beta is **v1.0.0-B1**.
+
+To build the setup locally, install [Inno Setup 6](https://jrsoftware.org/isinfo.php), then:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File packaging/build-installer.ps1
+```
+
+Output:
+
+- `artifacts\installer\PureFusionIRC-1.0.0-B1-setup.exe`
+- `artifacts\portable\PureFusionIRC-1.0.0-B1-win-x64.zip`
+
+User settings stay in `%AppData%\PureFusionIRC\` and are not removed on uninstall.
+
+## GitHub Actions releases
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs tests on Windows, compiles the Inno installer, and can publish a GitHub Release.
+
+Push a version tag to cut a release (beta tags stay marked prerelease):
+
+```powershell
+git tag v1.0.0-B1
+git push origin main --tags
+```
+
+You can also run **Actions → Build and release → Run workflow**, keep version `1.0.0-B1`, and enable **Create a GitHub Release**.
 
 ## What it is trying to be
 
