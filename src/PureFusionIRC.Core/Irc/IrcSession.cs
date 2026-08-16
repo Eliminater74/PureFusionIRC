@@ -46,6 +46,7 @@ public sealed partial class IrcSession : IAsyncDisposable
     private readonly List<string> _pendingCaps = new();
     private bool _capEnded;
     private bool _saslDone;
+    private bool _userDisconnect;
     private long _lagSentUnixMs;
     private int _nickTries;
 
@@ -151,6 +152,7 @@ public sealed partial class IrcSession : IAsyncDisposable
 
         var server = Network.PrimaryServer;
         var endpoint = new IrcEndpoint(server.Host, server.Port, server.UseTls, server.AcceptInvalidCertificates);
+        _userDisconnect = false;
         SetState(SessionState.Connecting);
         Print(ServerBuffer, ChatLineKind.Info, "Connecting to " + endpoint + " …");
 
@@ -187,6 +189,7 @@ public sealed partial class IrcSession : IAsyncDisposable
 
     public async Task DisconnectAsync(CancellationToken cancellationToken = default)
     {
+        _userDisconnect = true;
         SetState(SessionState.Disconnecting);
         if (_runCts is not null)
         {
@@ -275,10 +278,36 @@ public sealed partial class IrcSession : IAsyncDisposable
         }
         finally
         {
+            var dropped = State != SessionState.Disconnecting && !_userDisconnect;
             if (State != SessionState.Disconnecting)
             {
                 SetState(SessionState.Disconnected);
             }
+
+            if (dropped && Settings.Reconnect)
+            {
+                Print(ServerBuffer, ChatLineKind.Info,
+                    $"Disconnected. Reconnecting in {Math.Max(2, Settings.ReconnectDelaySeconds)} seconds…");
+                _ = ReconnectLaterAsync();
+            }
+        }
+    }
+
+    private async Task ReconnectLaterAsync()
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(Math.Max(2, Settings.ReconnectDelaySeconds))).ConfigureAwait(false);
+            if (_userDisconnect)
+            {
+                return;
+            }
+
+            await ConnectAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Print(ServerBuffer, ChatLineKind.Error, "Reconnect failed: " + ex.Message);
         }
     }
 
