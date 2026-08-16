@@ -14,13 +14,27 @@ Core client: connect over TCP or TLS, register, talk, join channels, nick list, 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or later (SDK 8, 9, and 10 are fine)
 - Visual Studio 2022, Cursor, or `dotnet` CLI
 
-## Build and run
+## Build and run (Windows `.exe`)
+
+This is a **Windows WinExe**, like mIRC. The build product is `PureFusionIRC.exe`, not a macOS `.app`.
 
 ```powershell
 dotnet restore PureFusionIRC.slnx
 dotnet build PureFusionIRC.slnx -c Release
 dotnet run --project src/PureFusionIRC.App -c Release
 ```
+
+The executable is:
+
+`src\PureFusionIRC.App\bin\Release\net8.0-windows\PureFusionIRC.exe`
+
+To publish a runnable folder (still `.exe`):
+
+```powershell
+dotnet publish src/PureFusionIRC.App -c Release -r win-x64 --self-contained false
+```
+
+`src/PureFusionIRC.App` is only the C# WPF project name (`App.xaml`). It is not an Apple app bundle.
 
 Data lives under `%AppData%\PureFusionIRC\` (settings, networks, themes, scripts, logs). Built-in themes are shipped with the app; user themes can be added without rebuilding.
 

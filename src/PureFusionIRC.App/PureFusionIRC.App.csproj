@@ -12,10 +12,12 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>PureFusionIRC</AssemblyName>
     <RootNamespace>PureFusionIRC.App</RootNamespace>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationManifest>PureFusionIRC.exe.manifest</ApplicationManifest>
     <ApplicationTitle>PureFusionIRC</ApplicationTitle>
     <Description>Windows IRC client with an mIRC-style layout and a full theme engine.</Description>
     <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+    <!-- WinExe = Windows GUI .exe (same class as mIRC), not a macOS .app bundle. -->
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
   </PropertyGroup>
 
 </Project>
