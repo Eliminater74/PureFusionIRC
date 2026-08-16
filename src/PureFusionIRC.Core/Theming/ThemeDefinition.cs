@@ -239,6 +239,12 @@ public sealed class ThemeCatalog
                     var theme = JsonSerializer.Deserialize<ThemeDefinition>(File.ReadAllText(file), SettingsStore.JsonOptions);
                     if (theme is not null && !string.IsNullOrWhiteSpace(theme.Id))
                     {
+                        theme.Ui ??= new ThemeUiColors();
+                        if (theme.Palette is null || theme.Palette.Length == 0)
+                        {
+                            theme.Palette = (string[])MircPalette.Classic.Clone();
+                        }
+
                         map[theme.Id] = theme;
                     }
                 }
@@ -264,9 +270,129 @@ public sealed class ThemeCatalog
         Directory.CreateDirectory(UserThemesDirectory);
         foreach (var theme in BuiltInThemes.All)
         {
-            // Refresh stock themes so shipped color updates show up; extra *.json files are left alone.
-            var path = Path.Combine(UserThemesDirectory, theme.Id + ".json");
+            var path = PathFor(theme.Id);
+            if (File.Exists(path))
+            {
+                continue;
+            }
+
             File.WriteAllText(path, JsonSerializer.Serialize(theme, SettingsStore.JsonOptions));
         }
+    }
+
+    public static bool IsBuiltIn(string id) =>
+        BuiltInThemes.All.Any(t => string.Equals(t.Id, id, StringComparison.OrdinalIgnoreCase));
+
+    public string PathFor(string id) =>
+        Path.Combine(UserThemesDirectory, id + ".json");
+
+    public void Save(ThemeDefinition theme)
+    {
+        if (string.IsNullOrWhiteSpace(theme.Id))
+        {
+            throw new ArgumentException("Theme id is required.", nameof(theme));
+        }
+
+        Directory.CreateDirectory(UserThemesDirectory);
+        theme.Ui.ApplyChromeFallbacks(theme.IsDark);
+        if (theme.Palette is null || theme.Palette.Length == 0)
+        {
+            theme.Palette = MircPalette.Classic;
+        }
+
+        File.WriteAllText(PathFor(theme.Id), JsonSerializer.Serialize(theme, SettingsStore.JsonOptions));
+    }
+
+    public ThemeDefinition CloneAsNew(ThemeDefinition source, string name)
+    {
+        var copy = Clone(source);
+        copy.Name = string.IsNullOrWhiteSpace(name) ? source.Name + " copy" : name.Trim();
+        copy.Id = UniqueId(Slug(copy.Name));
+        copy.Description = "Copy of " + source.Name;
+        Save(copy);
+        return copy;
+    }
+
+    public bool Delete(string id)
+    {
+        if (IsBuiltIn(id))
+        {
+            return false;
+        }
+
+        var path = PathFor(id);
+        if (!File.Exists(path))
+        {
+            return false;
+        }
+
+        File.Delete(path);
+        return true;
+    }
+
+    public ThemeDefinition ResetBuiltIn(string id)
+    {
+        var factory = BuiltInThemes.All.FirstOrDefault(t => string.Equals(t.Id, id, StringComparison.OrdinalIgnoreCase));
+        if (factory is null)
+        {
+            throw new InvalidOperationException("Not a built-in theme: " + id);
+        }
+
+        var fresh = Clone(factory);
+        Save(fresh);
+        return Get(id);
+    }
+
+    public static ThemeDefinition Clone(ThemeDefinition theme)
+    {
+        var copy = JsonSerializer.Deserialize<ThemeDefinition>(
+            JsonSerializer.Serialize(theme, SettingsStore.JsonOptions),
+            SettingsStore.JsonOptions) ?? new ThemeDefinition();
+        copy.Ui ??= new ThemeUiColors();
+        if (copy.Palette is null || copy.Palette.Length == 0)
+        {
+            copy.Palette = (string[])MircPalette.Classic.Clone();
+        }
+        else
+        {
+            copy.Palette = (string[])copy.Palette.Clone();
+        }
+
+        return copy;
+    }
+
+    public string UniqueId(string baseId)
+    {
+        var slug = string.IsNullOrWhiteSpace(baseId) ? "custom" : baseId;
+        var ids = LoadAll().Select(t => t.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (!ids.Contains(slug))
+        {
+            return slug;
+        }
+
+        for (var n = 2; n < 1000; n++)
+        {
+            var candidate = slug + "-" + n.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (!ids.Contains(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return slug + "-" + Guid.NewGuid().ToString("N")[..6];
+    }
+
+    public static string Slug(string name)
+    {
+        var chars = (name ?? "").Trim().ToLowerInvariant()
+            .Select(c => char.IsAsciiLetterOrDigit(c) ? c : '-')
+            .ToArray();
+        var slug = new string(chars).Trim('-');
+        while (slug.Contains("--", StringComparison.Ordinal))
+        {
+            slug = slug.Replace("--", "-", StringComparison.Ordinal);
+        }
+
+        return slug.Length == 0 ? "custom" : slug;
     }
 }

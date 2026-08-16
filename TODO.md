@@ -30,7 +30,8 @@ Living list for the next review after core functionality. Strike items as they l
 
 ## Theming and settings
 
-- [ ] Theme preview dialog and `.pftheme` pack (JSON + optional background)
+- [x] Theme editor (live preview, duplicate, reset, save JSON under AppData)
+- [ ] Theme pack file (`.pftheme` JSON + optional background)
 - [ ] More factories: High Contrast, Solarized, “Almond” warm-dark if wanted
 - [ ] Color-code inserter (mIRC Ctrl+K popover)
 - [ ] Portable mode (`PureFusionIRC.exe --portable`)

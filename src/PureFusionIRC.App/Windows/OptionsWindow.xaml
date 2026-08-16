@@ -14,6 +14,12 @@
             <TabItem Header="General">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="12">
+                    <Label Content="Theme"/>
+                    <DockPanel LastChildFill="True" Margin="0,0,0,12">
+                        <Button DockPanel.Dock="Right" Content="Edit colors…" Width="110" Margin="8,0,0,0" Click="EditTheme_Click"/>
+                        <TextBlock x:Name="ThemeNameBlock" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource PrimaryTextBrush}"/>
+                    </DockPanel>
                     <CheckBox x:Name="TimestampsBox" Content="Show timestamps" Margin="0,0,0,8"/>
                     <CheckBox x:Name="ReconnectBox" Content="Reconnect if the server drops (after 5 failures use the next listed server)" Margin="0,0,0,8"/>
                     <CheckBox x:Name="HideJoinBox" Content="Hide join/part/quit" Margin="0,0,0,8"/>

@@ -40,7 +40,7 @@ PureFusionIRC is built in layers. Core (this milestone) is a usable Windows IRC 
 - Documented JavaScript API (timers, hooks, menus, storage)
 - Loadable plugin assemblies (`IPureFusionPlugin`) with versioned ABI
 - Optional extra script languages later (Lua or C# scripts) — still not mSL
-- Theme manager window (preview, import `.pftheme`)
+- [x] Theme manager window (preview, save JSON under AppData)
 - Signed script/plugin directory (optional, out of tree)
 
 ## Milestone 4 — Power client

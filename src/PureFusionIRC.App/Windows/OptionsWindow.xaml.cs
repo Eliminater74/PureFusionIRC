@@ -15,6 +15,7 @@ public partial class OptionsWindow : Window
         InitializeComponent();
         var app = runtime.Document.App;
         var id = app.Identity;
+        ThemeNameBlock.Text = runtime.Theme.Name + "  (" + runtime.Theme.Id + ")";
         TimestampsBox.IsChecked = app.ShowTimestamps;
         ReconnectBox.IsChecked = app.Reconnect;
         HideJoinBox.IsChecked = app.HideJoinPart;
@@ -74,6 +75,13 @@ public partial class OptionsWindow : Window
         _runtime.Save();
         DialogResult = true;
         Close();
+    }
+
+    private void EditTheme_Click(object sender, RoutedEventArgs e)
+    {
+        var editor = new ThemeEditorWindow(_runtime) { Owner = Owner ?? this };
+        editor.ShowDialog();
+        ThemeNameBlock.Text = _runtime.Theme.Name + "  (" + _runtime.Theme.Id + ")";
     }
 
     private void BrowseFolder_Click(object sender, RoutedEventArgs e)

@@ -62,6 +62,24 @@ public sealed class ClientRuntime : IAsyncDisposable
         return Theme;
     }
 
+    public void PreviewTheme(ThemeDefinition theme)
+    {
+        theme.Ui.ApplyChromeFallbacks(theme.IsDark);
+        Theme = theme;
+        foreach (var session in Sessions)
+        {
+            session.Theme = theme;
+        }
+
+        ThemeChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public ThemeDefinition SaveTheme(ThemeDefinition theme)
+    {
+        Themes.Save(theme);
+        return ApplyTheme(theme.Id);
+    }
+
     public NetworkProfile AddNetwork(NetworkProfile profile)
     {
         Document.Networks.Add(profile);

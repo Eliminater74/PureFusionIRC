@@ -261,6 +261,11 @@ public partial class MainWindow : Window
             };
             ThemeMenu.Items.Add(item);
         }
+
+        ThemeMenu.Items.Add(new Separator());
+        var edit = new MenuItem { Header = "_Edit theme…" };
+        edit.Click += ThemeEditor_Click;
+        ThemeMenu.Items.Add(edit);
     }
 
     private async void Networks_Click(object sender, RoutedEventArgs e)
@@ -441,6 +446,18 @@ public partial class MainWindow : Window
         TreeColumn.Width = _runtime.Document.App.ShowTree ? new GridLength(220) : new GridLength(0);
         NickColumn.Width = _runtime.Document.App.ShowNickList ? new GridLength(180) : new GridLength(0);
         ToolbarTray.Visibility = _runtime.Document.App.ShowToolbar ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void ThemeEditor_Click(object sender, RoutedEventArgs e)
+    {
+        var window = new ThemeEditorWindow(_runtime) { Owner = this };
+        window.ShowDialog();
+        ApplyTheme(_runtime.Theme);
+        BuildThemeMenu();
+        if (_buffer is not null)
+        {
+            Chat.Show(_buffer);
+        }
     }
 
     private void Options_Click(object sender, RoutedEventArgs e)

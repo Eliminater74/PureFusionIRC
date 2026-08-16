@@ -381,7 +381,8 @@ public sealed class CommandProcessor
     {
         if (string.IsNullOrWhiteSpace(c.Arguments))
         {
-            c.Session.Print(c.Buffer, ChatLineKind.Info, "Current theme: " + c.Session.Theme.Id + " — /theme <id>");
+            c.Session.Print(c.Buffer, ChatLineKind.Info,
+                "Current theme: " + c.Session.Theme.Id + " — /theme <id>  or View → Theme → Edit theme…");
             return Task.FromResult(CommandResult.Ok());
         }
 

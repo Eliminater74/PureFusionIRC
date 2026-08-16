@@ -85,7 +85,7 @@ You can also run **Actions → Build and release → Run workflow**, keep versio
 - **Classic Light** — pale blue chrome, dark text
 - **Charcoal** — softer dark gray panels with bluish controls
 
-Switch from **View → Theme** or `/theme <id>`. Export/import themes with the rest of your settings from **Tools → Export settings** / **Import settings**.
+Switch from **View → Theme**, edit every color from **View → Theme → Edit theme…** (also **Tools → Theme editor…**), or `/theme <id>`. User JSON lives in `%AppData%\PureFusionIRC\themes\` and is no longer overwritten on startup. Fonts stay in **Tools → Options**.
 
 ## Layout
 

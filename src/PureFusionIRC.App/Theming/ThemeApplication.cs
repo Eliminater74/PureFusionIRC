@@ -66,6 +66,33 @@ public static class ThemeApplication
     public static Color Parse(string hex) =>
         (Color)ColorConverter.ConvertFromString(hex);
 
+    public static bool TryParse(string hex, out Color color)
+    {
+        color = default;
+        if (string.IsNullOrWhiteSpace(hex))
+        {
+            return false;
+        }
+
+        try
+        {
+            var parsed = ColorConverter.ConvertFromString(hex.Trim());
+            if (parsed is Color value)
+            {
+                color = value;
+                return true;
+            }
+        }
+        catch (FormatException)
+        {
+        }
+        catch (NotSupportedException)
+        {
+        }
+
+        return false;
+    }
+
     public static SolidColorBrush PaletteBrush(ThemeDefinition theme, int? index)
     {
         if (index is null)
