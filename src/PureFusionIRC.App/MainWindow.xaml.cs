@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.IO;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -408,7 +409,7 @@ public partial class MainWindow : Window
     private void About_Click(object sender, RoutedEventArgs e)
     {
         MessageBox.Show(this,
-            "PureFusionIRC 0.1.0\nWindows C# IRC client inspired by mIRC, with a full theme engine.\nDefault theme: AMOLED Black.\nScripts: JavaScript (.pf.js), not mIRC script.\n\nMIT License",
+            "PureFusionIRC " + GetProductVersion() + "\nWindows C# IRC client inspired by mIRC, with a full theme engine.\nDefault theme: AMOLED Black.\nScripts: JavaScript (.pf.js), not mIRC script.\n\nMIT License",
             "About PureFusionIRC");
     }
 
@@ -621,5 +622,18 @@ public partial class MainWindow : Window
         }
 
         base.OnPreviewKeyDown(e);
+    }
+
+    private static string GetProductVersion()
+    {
+        var info = typeof(App).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion;
+        if (string.IsNullOrWhiteSpace(info))
+        {
+            return typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0-B1";
+        }
+
+        var plus = info.IndexOf('+');
+        return plus < 0 ? info : info[..plus];
     }
 }
