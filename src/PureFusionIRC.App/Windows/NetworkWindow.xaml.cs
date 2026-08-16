@@ -70,6 +70,7 @@ public partial class NetworkWindow : Window
         ServerPassBox.Password = server.Password ?? "";
         NickBox.Text = profile.NickOverride ?? "";
         AutoJoinBox.Text = string.Join(", ", profile.AutoJoin);
+        ConnectStartupBox.IsChecked = profile.ConnectOnStartup;
         SaslUserBox.Text = profile.SaslAccount ?? "";
         SaslPassBox.Password = profile.SaslPassword ?? "";
         NickServBox.Password = profile.NickServPassword ?? "";
@@ -119,6 +120,7 @@ public partial class NetworkWindow : Window
         _current.Servers = servers;
         _current.NickOverride = string.IsNullOrWhiteSpace(NickBox.Text) ? null : NickBox.Text.Trim();
         _current.AutoJoin = AutoJoinBox.Text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+        _current.ConnectOnStartup = ConnectStartupBox.IsChecked == true;
         _current.SaslAccount = string.IsNullOrWhiteSpace(SaslUserBox.Text) ? null : SaslUserBox.Text.Trim();
         _current.SaslPassword = string.IsNullOrEmpty(SaslPassBox.Password) ? null : SaslPassBox.Password;
         _current.NickServPassword = string.IsNullOrEmpty(NickServBox.Password) ? null : NickServBox.Password;

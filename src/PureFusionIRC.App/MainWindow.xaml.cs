@@ -67,13 +67,28 @@ public partial class MainWindow : Window
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         InputBox.Focus();
-        Dispatcher.BeginInvoke(() =>
+        Dispatcher.BeginInvoke(() => _ = AutoStartAsync(), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+    }
+
+    private async Task AutoStartAsync()
+    {
+        var autoConnect = _runtime.Document.Networks
+            .Where(n => n.Enabled && n.ConnectOnStartup && n.Servers.Count > 0)
+            .ToList();
+        foreach (var network in autoConnect)
         {
-            if (_runtime.Sessions.Count == 0)
+            if (_runtime.Sessions.Any(s => s.Network.Id == network.Id))
             {
-                Networks_Click(this, new RoutedEventArgs());
+                continue;
             }
-        }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+
+            await ConnectAsync(network).ConfigureAwait(true);
+        }
+
+        if (_runtime.Sessions.Count == 0)
+        {
+            Networks_Click(this, new RoutedEventArgs());
+        }
     }
 
     private void HookSession(IrcSession session)
