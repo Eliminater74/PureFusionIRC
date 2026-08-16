@@ -2,6 +2,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PureFusionIRC.Core\PureFusionIRC.Core.csproj" />
+    <Resource Include="Assets\PureFusionIRC.ico" />
+    <Resource Include="Assets\PureFusionIRC.png" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -10,6 +12,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Assets\PureFusionIRC.ico</ApplicationIcon>
     <AssemblyName>PureFusionIRC</AssemblyName>
     <RootNamespace>PureFusionIRC.App</RootNamespace>
     <ApplicationManifest>PureFusionIRC.exe.manifest</ApplicationManifest>

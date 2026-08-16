@@ -6,6 +6,7 @@
         xmlns:buf="clr-namespace:PureFusionIRC.Core.Buffers;assembly=PureFusionIRC.Core"
         xmlns:theming="clr-namespace:PureFusionIRC.App.Theming"
         Title="PureFusionIRC"
+        Icon="Assets/PureFusionIRC.ico"
         Height="720" Width="1180"
         MinHeight="480" MinWidth="800"
         Background="{DynamicResource WindowBackgroundBrush}">
