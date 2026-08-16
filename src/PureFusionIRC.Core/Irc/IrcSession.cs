@@ -45,6 +45,9 @@ public sealed partial class IrcSession : IAsyncDisposable
     private CancellationTokenSource? _runCts;
     private Task? _readTask;
     private readonly List<string> _pendingCaps = new();
+    private readonly Ircv3Capabilities _caps = new();
+    private readonly Dictionary<string, BatchAccumulator> _batches = new(StringComparer.Ordinal);
+    private int _labelSeq;
     private bool _capEnded;
     private bool _saslDone;
     private long _lagSentUnixMs;
@@ -108,6 +111,7 @@ public sealed partial class IrcSession : IAsyncDisposable
         }
     }
     public IReadOnlyList<string> RequestedCapabilities { get; private set; } = Array.Empty<string>();
+    public bool HasCap(string name) => _caps.Has(name);
 
     public event EventHandler? StateChanged;
     public event EventHandler<IrcBuffer>? BufferOpened;
@@ -155,10 +159,18 @@ public sealed partial class IrcSession : IAsyncDisposable
 
     public void Persist() => PersistRequested?.Invoke(this, EventArgs.Empty);
 
-    public void Print(IrcBuffer buffer, ChatLineKind kind, string text, string? nick = null, bool self = false)
+    public void Print(
+        IrcBuffer buffer,
+        ChatLineKind kind,
+        string text,
+        string? nick = null,
+        bool self = false,
+        DateTimeOffset? at = null,
+        string? messageId = null,
+        string? replyId = null)
     {
         var highlight = !self && IsHighlight(text);
-        var line = new ChatLine(DateTimeOffset.Now, kind, nick, text, buffer.Name, self, highlight);
+        var line = new ChatLine(at ?? DateTimeOffset.Now, kind, nick, text, buffer.Name, self, highlight, messageId, replyId);
         buffer.Append(line, Settings.MaxBufferLines);
         if (highlight)
         {
@@ -170,6 +182,20 @@ public sealed partial class IrcSession : IAsyncDisposable
         }
 
         LineAdded?.Invoke(this, new LineEventArgs(buffer, line));
+    }
+
+    public void PrintFrom(IrcBuffer buffer, ChatLineKind kind, string text, IrcMessage message, string? nick, bool self = false)
+    {
+        var fromSelf = self || (!string.IsNullOrEmpty(nick) && IsMe(nick));
+        Print(
+            buffer,
+            kind,
+            text,
+            nick,
+            fromSelf,
+            message.Timestamp,
+            message.GetTag("msgid"),
+            message.GetTag("+draft/reply", "draft/reply", "+reply", "reply"));
     }
 
     public void RequestTheme(string themeId) =>
@@ -206,6 +232,14 @@ public sealed partial class IrcSession : IAsyncDisposable
         _nickTries = 0;
         _capEnded = false;
         _saslDone = false;
+        _caps.Reset();
+        _batches.Clear();
+        _pendingCaps.Clear();
+        foreach (var buffer in Buffers)
+        {
+            buffer.HistoryRequested = false;
+        }
+
         ISupport.Clear();
         SetState(SessionState.Registering);
         Print(ServerBuffer, ChatLineKind.Info,
@@ -265,23 +299,71 @@ public sealed partial class IrcSession : IAsyncDisposable
         await _connection.SendLineAsync(line, cancellationToken).ConfigureAwait(false);
     }
 
+    public Task SendCommandAsync(
+        IReadOnlyDictionary<string, string?>? tags,
+        string command,
+        IReadOnlyList<string> parameters,
+        CancellationToken cancellationToken = default)
+    {
+        var message = new IrcMessage(
+            tags ?? new Dictionary<string, string?>(),
+            null,
+            command,
+            parameters);
+        return SendRawAsync(message.FormatOutgoing(), cancellationToken);
+    }
+
     public async Task PrivmsgAsync(string target, string text, CancellationToken cancellationToken = default)
     {
-        await SendRawAsync("PRIVMSG " + target + " :" + text, cancellationToken).ConfigureAwait(false);
         var kind = target.StartsWith('#') || target.StartsWith('&') ? BufferKind.Channel : BufferKind.Query;
         var buffer = GetOrCreate(kind, target);
-        Print(buffer, ChatLineKind.Message, text, CurrentNick, self: true);
+        var replyId = buffer.PendingReplyId;
+        buffer.PendingReplyId = null;
+        var tags = OutgoingTags(replyId);
+        await SendCommandAsync(tags, "PRIVMSG", [target, text], cancellationToken).ConfigureAwait(false);
+        if (!_caps.Has("echo-message"))
+        {
+            Print(buffer, ChatLineKind.Message, text, CurrentNick, self: true, replyId: replyId);
+        }
     }
 
     public async Task ActionAsync(string target, string text, CancellationToken cancellationToken = default)
     {
-        await SendRawAsync($"PRIVMSG {target} :\u0001ACTION {text}\u0001", cancellationToken).ConfigureAwait(false);
         var kind = target.StartsWith('#') || target.StartsWith('&') ? BufferKind.Channel : BufferKind.Query;
-        Print(GetOrCreate(kind, target), ChatLineKind.Action, text, CurrentNick, self: true);
+        var buffer = GetOrCreate(kind, target);
+        var replyId = buffer.PendingReplyId;
+        buffer.PendingReplyId = null;
+        var tags = OutgoingTags(replyId);
+        await SendCommandAsync(tags, "PRIVMSG", [target, "\u0001ACTION " + text + "\u0001"], cancellationToken)
+            .ConfigureAwait(false);
+        if (!_caps.Has("echo-message"))
+        {
+            Print(buffer, ChatLineKind.Action, text, CurrentNick, self: true, replyId: replyId);
+        }
+    }
+
+    public Task ReactAsync(string target, string emoji, CancellationToken cancellationToken = default)
+    {
+        var tags = new Dictionary<string, string?> { ["+draft/react"] = emoji };
+        return SendCommandAsync(tags, "TAGMSG", [target], cancellationToken);
     }
 
     public Task CtcpRequestAsync(string nick, string payload, CancellationToken cancellationToken = default) =>
         SendRawAsync($"PRIVMSG {nick} :\u0001{payload}\u0001", cancellationToken);
+
+    public Task WhoisAsync(string nick, CancellationToken cancellationToken = default)
+    {
+        if (_caps.Has("labeled-response"))
+        {
+            var tags = new Dictionary<string, string?>
+            {
+                ["label"] = "whois" + Interlocked.Increment(ref _labelSeq).ToString(CultureInfo.InvariantCulture)
+            };
+            return SendCommandAsync(tags, "WHOIS", [nick], cancellationToken);
+        }
+
+        return SendRawAsync("WHOIS " + nick, cancellationToken);
+    }
 
     public Task SendLagPingAsync(CancellationToken cancellationToken = default)
     {
@@ -479,6 +561,32 @@ public sealed partial class IrcSession : IAsyncDisposable
         }
 
         return null;
+    }
+
+    private Dictionary<string, string?>? OutgoingTags(string? replyId)
+    {
+        if (string.IsNullOrEmpty(replyId) || !_caps.Has("message-tags"))
+        {
+            return null;
+        }
+
+        return new Dictionary<string, string?> { ["+draft/reply"] = replyId };
+    }
+
+    private sealed class BatchAccumulator
+    {
+        public BatchAccumulator(string id, string type)
+        {
+            Id = id;
+            Type = type;
+        }
+
+        public string Id { get; }
+        public string Type { get; }
+        public List<IrcMessage> Messages { get; } = new();
+        public bool IsMultiline =>
+            Type.Equals("draft/multiline", StringComparison.OrdinalIgnoreCase)
+            || Type.Equals("multiline", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string EncodeSaslPlain(string account, string password)

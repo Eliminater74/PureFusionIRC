@@ -39,7 +39,9 @@ public sealed class ChatLine
         string text,
         string? target = null,
         bool isSelf = false,
-        bool isHighlight = false)
+        bool isHighlight = false,
+        string? messageId = null,
+        string? replyId = null)
     {
         Timestamp = timestamp;
         Kind = kind;
@@ -48,6 +50,8 @@ public sealed class ChatLine
         Target = target;
         IsSelf = isSelf;
         IsHighlight = isHighlight;
+        MessageId = messageId;
+        ReplyId = replyId;
     }
 
     public DateTimeOffset Timestamp { get; }
@@ -57,6 +61,8 @@ public sealed class ChatLine
     public string? Target { get; }
     public bool IsSelf { get; }
     public bool IsHighlight { get; }
+    public string? MessageId { get; }
+    public string? ReplyId { get; }
 }
 
 public sealed class NickEntry : INotifyPropertyChanged

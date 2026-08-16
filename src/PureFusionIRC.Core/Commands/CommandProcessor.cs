@@ -281,7 +281,7 @@ public sealed class CommandProcessor
     private static async Task<CommandResult> WhoisAsync(CommandContext c, CancellationToken t)
     {
         var nick = string.IsNullOrWhiteSpace(c.Arguments) ? c.Buffer.Name : c.Args[0];
-        await c.Session.SendRawAsync("WHOIS " + nick, t).ConfigureAwait(false);
+        await c.Session.WhoisAsync(nick, t).ConfigureAwait(false);
         return CommandResult.Ok();
     }
 

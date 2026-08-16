@@ -45,7 +45,7 @@ PureFusionIRC is built in layers. Core (this milestone) is a usable Windows IRC 
 
 ## Milestone 4 — Power client
 
-- Full IRCv3 remaining pieces that help users (chathistory, multiline, react, reply)
+- [x] Full IRCv3 remaining pieces that help users (chathistory, multiline, react, reply)
 - bouncer (ZNC/Soju) niceties
 - Multi-window / pop-out buffers (mIRC window habit)
 - Portable mode (settings beside the EXE)

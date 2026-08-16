@@ -44,6 +44,8 @@ public sealed class IrcBuffer : INotifyPropertyChanged
     }
 
     public Dictionary<string, NickEntry> NickMap { get; } = new(StringComparer.OrdinalIgnoreCase);
+    public string? PendingReplyId { get; set; }
+    public bool HistoryRequested { get; set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

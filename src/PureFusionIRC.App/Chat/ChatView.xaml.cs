@@ -18,7 +18,8 @@ public partial class ChatView : UserControl
     private ChatLine? _menuLine;
     private Uri? _menuUri;
 
-    public event Action<string>? ReplyNick;
+    public event Action<ChatLine>? ReplyLine;
+    public event Action<ChatLine>? ReactLine;
     public event Action<string>? QueryNick;
     public event Action<string>? WhoisNick;
 
@@ -86,6 +87,7 @@ public partial class ChatView : UserControl
         var nick = _menuLine?.Nick;
         var hasNick = !string.IsNullOrEmpty(nick);
         ReplyItem.IsEnabled = hasNick;
+        ReactItem.IsEnabled = hasNick && _menuLine?.Kind is ChatLineKind.Message or ChatLineKind.Action;
         QueryItem.IsEnabled = hasNick;
         WhoisItem.IsEnabled = hasNick;
         CopyNickItem.IsEnabled = hasNick;
@@ -117,9 +119,17 @@ public partial class ChatView : UserControl
 
     private void Reply_Click(object sender, RoutedEventArgs e)
     {
-        if (_menuLine?.Nick is { Length: > 0 } nick)
+        if (_menuLine is not null && !string.IsNullOrEmpty(_menuLine.Nick))
         {
-            ReplyNick?.Invoke(nick);
+            ReplyLine?.Invoke(_menuLine);
+        }
+    }
+
+    private void React_Click(object sender, RoutedEventArgs e)
+    {
+        if (_menuLine is not null)
+        {
+            ReactLine?.Invoke(_menuLine);
         }
     }
 

@@ -10,7 +10,7 @@ Living list for the next review after core functionality. Strike items as they l
 - [x] In-app update check + changelog + installer download
 - [ ] DCC CHAT
 - [ ] DCC RESUME / ACCEPT (partial-file UX)
-- [ ] Chathistory, batch, labeled-response, multiline, react (IRCv3)
+- [x] Chathistory, batch, labeled-response, multiline, react (IRCv3)
 - [ ] `sts` (strict transport) policy cache
 - [ ] Outgoing flood queue with user-visible lag meter beyond RTT ping
 - [ ] Message splitting that respects `LINELEN` / UTF-8 code points

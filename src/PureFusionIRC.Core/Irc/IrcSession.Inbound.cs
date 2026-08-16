@@ -7,6 +7,21 @@ public sealed partial class IrcSession
 {
     private async Task HandleAsync(IrcMessage message, CancellationToken cancellationToken)
     {
+        if (string.Equals(message.Command, "BATCH", StringComparison.OrdinalIgnoreCase))
+        {
+            HandleBatch(message);
+            return;
+        }
+
+        var batchId = message.GetTag("batch");
+        if (!string.IsNullOrEmpty(batchId) &&
+            _batches.TryGetValue(batchId, out var open) &&
+            open.IsMultiline)
+        {
+            open.Messages.Add(message);
+            return;
+        }
+
         switch (message.Command.ToUpperInvariant())
         {
             case "PING":
@@ -52,6 +67,25 @@ public sealed partial class IrcSession
             case "INVITE":
                 Print(ServerBuffer, ChatLineKind.Info,
                     $"{message.Prefix?.Nick} invites you to {message.Trailing ?? message[1]}");
+                return;
+            case "TAGMSG":
+                HandleTagmsg(message);
+                return;
+            case "ACCOUNT":
+                HandleAccount(message);
+                return;
+            case "CHGHOST":
+                HandleChghost(message);
+                return;
+            case "SETNAME":
+                HandleSetName(message);
+                return;
+            case "FAIL":
+                Print(ServerBuffer, ChatLineKind.Error, FormatStandardReply(message));
+                return;
+            case "WARN":
+            case "NOTE":
+                Print(ServerBuffer, ChatLineKind.Info, FormatStandardReply(message));
                 return;
             case "ERROR":
                 Print(ServerBuffer, ChatLineKind.Error, message.Trailing ?? "ERROR");
@@ -177,63 +211,73 @@ public sealed partial class IrcSession
 
     private async Task HandleCapAsync(IrcMessage message, CancellationToken cancellationToken)
     {
-        var sub = message.Parameters.Count >= 2 ? message.Parameters[1] : message.Trailing;
-        if (string.Equals(sub, "LS", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(sub, "ACK", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(sub, "NAK", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(sub, "NEW", StringComparison.OrdinalIgnoreCase))
+        var sub = Ircv3Capabilities.Subcommand(message);
+        var wantSasl = !string.IsNullOrEmpty(Network.SaslAccount);
+        if (string.Equals(sub, "LS", StringComparison.OrdinalIgnoreCase))
         {
-            var caps = (message.Trailing ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (string.Equals(sub, "LS", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(sub, "NEW", StringComparison.OrdinalIgnoreCase))
+            var want = _caps.NoteLs(message, wantSasl);
+            if (want.Count == 0 && Ircv3Capabilities.IsContinued(message))
             {
-                var want = new List<string>();
-                foreach (var cap in caps)
-                {
-                    var name = cap.Split('=', 2)[0];
-                    if (name is "multi-prefix" or "server-time" or "account-tag" or "extended-join"
-                        or "away-notify" or "chghost" or "message-tags" or "userhost-in-names")
-                    {
-                        want.Add(name);
-                    }
-
-                    if (name == "sasl" && !string.IsNullOrEmpty(Network.SaslAccount))
-                    {
-                        want.Add("sasl");
-                    }
-                }
-
-                RequestedCapabilities = want;
-                if (want.Count > 0)
-                {
-                    await SendRawAsync("CAP REQ :" + string.Join(' ', want), cancellationToken).ConfigureAwait(false);
-                }
-                else if (!_capEnded)
-                {
-                    await SendRawAsync("CAP END", cancellationToken).ConfigureAwait(false);
-                    _capEnded = true;
-                }
+                return;
             }
-            else if (string.Equals(sub, "ACK", StringComparison.OrdinalIgnoreCase))
+
+            RequestedCapabilities = want;
+            if (want.Count > 0)
             {
-                _pendingCaps.Clear();
-                _pendingCaps.AddRange(caps);
-                if (_pendingCaps.Contains("sasl", StringComparer.OrdinalIgnoreCase) &&
-                    !string.IsNullOrEmpty(Network.SaslAccount))
-                {
-                    await SendRawAsync("AUTHENTICATE PLAIN", cancellationToken).ConfigureAwait(false);
-                }
-                else if (!_capEnded)
-                {
-                    await SendRawAsync("CAP END", cancellationToken).ConfigureAwait(false);
-                    _capEnded = true;
-                }
+                await SendRawAsync("CAP REQ :" + string.Join(' ', want), cancellationToken).ConfigureAwait(false);
             }
-            else if (string.Equals(sub, "NAK", StringComparison.OrdinalIgnoreCase) && !_capEnded)
+            else if (!_capEnded)
             {
                 await SendRawAsync("CAP END", cancellationToken).ConfigureAwait(false);
                 _capEnded = true;
             }
+
+            return;
+        }
+
+        if (string.Equals(sub, "NEW", StringComparison.OrdinalIgnoreCase))
+        {
+            var want = _caps.NoteNew(message, wantSasl);
+            if (want.Count > 0)
+            {
+                await SendRawAsync("CAP REQ :" + string.Join(' ', want), cancellationToken).ConfigureAwait(false);
+            }
+
+            return;
+        }
+
+        if (string.Equals(sub, "ACK", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!_caps.NoteAck(message))
+            {
+                return;
+            }
+
+            _pendingCaps.Clear();
+            _pendingCaps.AddRange(_caps.Enabled);
+            if (_caps.Has("sasl") && wantSasl && !_saslDone)
+            {
+                await SendRawAsync("AUTHENTICATE PLAIN", cancellationToken).ConfigureAwait(false);
+            }
+            else if (!_capEnded)
+            {
+                await SendRawAsync("CAP END", cancellationToken).ConfigureAwait(false);
+                _capEnded = true;
+            }
+
+            return;
+        }
+
+        if (string.Equals(sub, "NAK", StringComparison.OrdinalIgnoreCase) && !_capEnded)
+        {
+            await SendRawAsync("CAP END", cancellationToken).ConfigureAwait(false);
+            _capEnded = true;
+            return;
+        }
+
+        if (string.Equals(sub, "DEL", StringComparison.OrdinalIgnoreCase))
+        {
+            _caps.NoteDel(message);
         }
     }
 
@@ -272,7 +316,7 @@ public sealed partial class IrcSession
         var ctcp = CtcpPayload(text);
         if (ctcp is not null)
         {
-            HandleCtcp(from, target, ctcp, reply: false);
+            HandleCtcp(from, target, ctcp, reply: false, message);
             return;
         }
 
@@ -280,7 +324,7 @@ public sealed partial class IrcSession
         var buffer = toUs
             ? GetOrCreate(BufferKind.Query, from)
             : GetOrCreate(BufferKind.Channel, target);
-        Print(buffer, ChatLineKind.Message, text, from);
+        PrintFrom(buffer, ChatLineKind.Message, text, message, from);
     }
 
     private void HandleNotice(IrcMessage message)
@@ -291,17 +335,17 @@ public sealed partial class IrcSession
         var ctcp = CtcpPayload(text);
         if (ctcp is not null)
         {
-            HandleCtcp(from, target, ctcp, reply: true);
+            HandleCtcp(from, target, ctcp, reply: true, message);
             return;
         }
 
         var buffer = string.Equals(target, CurrentNick, StringComparison.OrdinalIgnoreCase) && message.Prefix?.IsUser == true
             ? GetOrCreate(BufferKind.Query, from)
             : ServerBuffer;
-        Print(buffer, ChatLineKind.Notice, text, from);
+        PrintFrom(buffer, ChatLineKind.Notice, text, message, from);
     }
 
-    private void HandleCtcp(string from, string target, string payload, bool reply)
+    private void HandleCtcp(string from, string target, string payload, bool reply, IrcMessage message)
     {
         var space = payload.IndexOf(' ');
         var command = space < 0 ? payload : payload[..space];
@@ -337,18 +381,22 @@ public sealed partial class IrcSession
         {
             var toUs = string.Equals(target, CurrentNick, StringComparison.OrdinalIgnoreCase);
             var buffer = toUs ? GetOrCreate(BufferKind.Query, from) : GetOrCreate(BufferKind.Channel, target);
-            Print(buffer, ChatLineKind.Action, args, from);
+            PrintFrom(buffer, ChatLineKind.Action, args, message, from);
         }
     }
 
     private void HandleJoin(IrcMessage message)
     {
         var nick = message.Prefix?.Nick ?? "?";
-        var channel = message.Trailing ?? message[0] ?? string.Empty;
+        var channel = Ircv3Capabilities.ChannelTarget(message);
         var buffer = GetOrCreate(BufferKind.Channel, channel);
+        var account = message.Parameters.Count >= 2 && !Ircv3Capabilities.LooksLikeChannel(message[1])
+            ? message[1]
+            : null;
         if (!Settings.HideJoinPart)
         {
-            Print(buffer, ChatLineKind.Join, nick + " has joined " + channel, nick);
+            var extra = string.IsNullOrEmpty(account) || account == "*" ? string.Empty : " (" + account + ")";
+            Print(buffer, ChatLineKind.Join, nick + " has joined " + channel + extra, nick);
         }
 
         if (string.Equals(nick, CurrentNick, StringComparison.OrdinalIgnoreCase))
@@ -356,7 +404,13 @@ public sealed partial class IrcSession
             return;
         }
 
-        buffer.UpsertNick(MakeNick(nick));
+        var entry = MakeNick(nick);
+        if (!string.IsNullOrEmpty(account) && account != "*")
+        {
+            entry.Account = account;
+        }
+
+        buffer.UpsertNick(entry);
     }
 
     private void HandlePart(IrcMessage message)
@@ -520,7 +574,7 @@ public sealed partial class IrcSession
             }
 
             var prefixes = token[..i];
-            var nick = token[i..];
+            var nick = Ircv3Capabilities.BareNick(token[i..]);
             if (nick.Length > 0)
             {
                 buffer.UpsertNick(MakeNick(nick, prefixes));
@@ -528,20 +582,34 @@ public sealed partial class IrcSession
         }
     }
 
-    private Task HandleEndOfNamesAsync(IrcMessage message, CancellationToken cancellationToken)
+    private async Task HandleEndOfNamesAsync(IrcMessage message, CancellationToken cancellationToken)
     {
         var channel = message[1] ?? string.Empty;
         if (string.IsNullOrEmpty(channel) || channel.StartsWith(':'))
         {
-            return Task.CompletedTask;
+            return;
         }
 
         if (ISupport.ContainsKey("WHOX"))
         {
-            return SendRawAsync("WHO " + channel + " %cuhnfal", cancellationToken);
+            await SendRawAsync("WHO " + channel + " %cuhnfal", cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            await SendRawAsync("WHO " + channel, cancellationToken).ConfigureAwait(false);
         }
 
-        return SendRawAsync("WHO " + channel, cancellationToken);
+        var buffer = GetOrCreate(BufferKind.Channel, channel);
+        if (buffer.HistoryRequested)
+        {
+            return;
+        }
+
+        buffer.HistoryRequested = true;
+        if (_caps.Has("chathistory") || _caps.Has("draft/chathistory"))
+        {
+            await SendRawAsync("CHATHISTORY LATEST " + channel + " * 50", cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private void HandleWho(IrcMessage message)
@@ -716,6 +784,106 @@ public sealed partial class IrcSession
 
     private bool IsMe(string nick) =>
         string.Equals(nick, CurrentNick, StringComparison.OrdinalIgnoreCase);
+
+    private void HandleBatch(IrcMessage message)
+    {
+        var token = message[0] ?? string.Empty;
+        if (token.StartsWith('+'))
+        {
+            _batches[token[1..]] = new BatchAccumulator(token[1..], message[1] ?? string.Empty);
+            return;
+        }
+
+        if (token.StartsWith('-'))
+        {
+            CloseBatch(token[1..]);
+        }
+    }
+
+    private void CloseBatch(string id)
+    {
+        if (!_batches.Remove(id, out var batch) || !batch.IsMultiline || batch.Messages.Count == 0)
+        {
+            return;
+        }
+
+        var first = batch.Messages[0];
+        var nick = first.Prefix?.Nick ?? "?";
+        var target = first[0] ?? string.Empty;
+        var buffer = BufferFor(nick, target);
+        var text = string.Join("\n", batch.Messages.Select(m => m.Trailing ?? string.Empty));
+        PrintFrom(buffer, ChatLineKind.Message, text, first, nick);
+    }
+
+    private IrcBuffer BufferFor(string from, string target)
+    {
+        var toUs = string.Equals(target, CurrentNick, StringComparison.OrdinalIgnoreCase);
+        return toUs ? GetOrCreate(BufferKind.Query, from) : GetOrCreate(BufferKind.Channel, target);
+    }
+
+    private void HandleTagmsg(IrcMessage message)
+    {
+        var from = message.Prefix?.Nick ?? "?";
+        var target = message[0] ?? string.Empty;
+        var react = message.GetTag("+draft/react", "draft/react", "+react");
+        if (string.IsNullOrEmpty(react))
+        {
+            return;
+        }
+
+        PrintFrom(BufferFor(from, target), ChatLineKind.Info, from + " reacted " + react, message, from);
+    }
+
+    private void HandleAccount(IrcMessage message)
+    {
+        var nick = message.Prefix?.Nick;
+        if (string.IsNullOrEmpty(nick))
+        {
+            return;
+        }
+
+        var account = message[0] ?? message.Trailing;
+        if (account == "*")
+        {
+            account = null;
+        }
+
+        foreach (var buffer in Buffers.Where(b => b.Kind == BufferKind.Channel))
+        {
+            if (buffer.NickMap.TryGetValue(nick, out var entry))
+            {
+                entry.Account = account;
+            }
+        }
+    }
+
+    private void HandleChghost(IrcMessage message)
+    {
+        var nick = message.Prefix?.Nick ?? "?";
+        var user = message[0] ?? string.Empty;
+        var host = message[1] ?? string.Empty;
+        var text = nick + " is now " + user + "@" + host;
+        var shown = false;
+        foreach (var buffer in Buffers.Where(b => b.Kind == BufferKind.Channel && b.NickMap.ContainsKey(nick)))
+        {
+            Print(buffer, ChatLineKind.Nick, text, nick);
+            shown = true;
+        }
+
+        if (!shown)
+        {
+            Print(ServerBuffer, ChatLineKind.Info, text, nick);
+        }
+    }
+
+    private void HandleSetName(IrcMessage message)
+    {
+        var nick = message.Prefix?.Nick ?? "?";
+        Print(ServerBuffer, ChatLineKind.Info, nick + " real name is now " + (message.Trailing ?? string.Empty), nick);
+    }
+
+    private static string FormatStandardReply(IrcMessage message) =>
+        string.Join(' ', message.Parameters);
 
     private NickEntry MakeNick(string nick, string prefixes = "") =>
         new(nick, prefixes) { IsSelf = IsMe(nick) };

@@ -38,6 +38,10 @@ public static class ChatDocumentBuilder
                 var nickColor = line.IsSelf ? theme.Ui.SelfNick : theme.Ui.OtherNick;
                 var label = line.Kind == ChatLineKind.Notice ? "-" + line.Nick + "-" : "<" + line.Nick + ">";
                 paragraph.Inlines.Add(Run(label + " ", Brush("OtherNickBrush", nickColor)));
+                if (!string.IsNullOrEmpty(line.ReplyId))
+                {
+                    paragraph.Inlines.Add(Run("↳ ", Dim(theme)));
+                }
                 AddBody(paragraph, line.Text, theme, settings, Brush("PrimaryTextBrush", theme.Ui.Text));
                 break;
             default:

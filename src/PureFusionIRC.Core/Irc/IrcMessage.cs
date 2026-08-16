@@ -31,6 +31,24 @@ public sealed class IrcMessage
     public string? this[int index] =>
         index >= 0 && index < Parameters.Count ? Parameters[index] : null;
 
+    public string? GetTag(params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (Tags.TryGetValue(name, out var value) && !string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            if (!name.StartsWith('+') && Tags.TryGetValue("+" + name, out value) && !string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
     public static bool TryParse(string line, out IrcMessage message)
     {
         message = null!;

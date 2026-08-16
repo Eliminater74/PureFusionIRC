@@ -21,6 +21,7 @@
             <RichTextBox.ContextMenu>
                 <ContextMenu Opened="ChatMenu_Opened">
                     <MenuItem x:Name="ReplyItem" Header="Reply" Click="Reply_Click"/>
+                    <MenuItem x:Name="ReactItem" Header="React 👍" Click="React_Click"/>
                     <MenuItem x:Name="QueryItem" Header="Query" Click="Query_Click"/>
                     <MenuItem x:Name="WhoisItem" Header="Whois" Click="Whois_Click"/>
                     <Separator/>

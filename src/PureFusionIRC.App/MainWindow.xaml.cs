@@ -47,7 +47,8 @@ public partial class MainWindow : Window
         BuildThemeMenu();
         BufferTree.ItemsSource = _runtime.Sessions;
         Chat.Configure(_runtime.Theme, _runtime.Document.App);
-        Chat.ReplyNick += InsertReplyPrefix;
+        Chat.ReplyLine += InsertReply;
+        Chat.ReactLine += line => _ = ReactFromChatAsync(line);
         Chat.QueryNick += nick => _ = NickCommandFromChatAsync("/query {0}", nick);
         Chat.WhoisNick += nick => _ = NickCommandFromChatAsync("/whois {0}", nick);
         _runtime.Dcc.IncomingOffer += (_, transfer) => Dispatcher.Invoke(() => OnIncomingFile(transfer));
@@ -916,6 +917,29 @@ public partial class MainWindow : Window
             await _session.Commands.ExecuteAsync(_session, _buffer ?? _session.ServerBuffer, "/query " + nick)
                 .ConfigureAwait(true);
         }
+    }
+
+    private void InsertReply(ChatLine line)
+    {
+        if (_buffer is not null)
+        {
+            _buffer.PendingReplyId = line.MessageId;
+        }
+
+        if (!string.IsNullOrEmpty(line.Nick))
+        {
+            InsertReplyPrefix(line.Nick);
+        }
+    }
+
+    private async Task ReactFromChatAsync(ChatLine line)
+    {
+        if (_session is null || _buffer is null)
+        {
+            return;
+        }
+
+        await _session.ReactAsync(line.Target ?? _buffer.Name, "👍").ConfigureAwait(true);
     }
 
     private string? SelectedNick() => NickList.SelectedItem is NickEntry entry ? entry.Nick : null;
