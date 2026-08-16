@@ -1,8 +1,15 @@
 using System.Windows;
 using PureFusionIRC.Core;
 using PureFusionIRC.Core.Models;
+using PureFusionIRC.Core.Settings;
 
 namespace PureFusionIRC.App.Windows;
+
+public sealed class CountryGroup
+{
+    public required string Country { get; init; }
+    public required List<NetworkProfile> Networks { get; init; }
+}
 
 public partial class NetworkWindow : Window
 {
@@ -14,39 +21,66 @@ public partial class NetworkWindow : Window
     {
         _runtime = runtime;
         InitializeComponent();
-        NetworkList.ItemsSource = _runtime.Document.Networks;
+        CountryBox.ItemsSource = DefaultNetworks.CountryOrder;
         GlobalNickBox.Text = _runtime.Document.App.Identity.Nick;
         AltNickBox.Text = _runtime.Document.App.Identity.AlternativeNick;
         UserBox.Text = _runtime.Document.App.Identity.Username;
         RealBox.Text = _runtime.Document.App.Identity.RealName;
-        if (_runtime.Document.Networks.Count > 0)
+        RebuildTree();
+        SelectNetwork(_runtime.Document.Networks.FirstOrDefault(n => n.Name.StartsWith("IRCnet (USA)", StringComparison.OrdinalIgnoreCase))
+                      ?? _runtime.Document.Networks.FirstOrDefault());
+    }
+
+    private void RebuildTree()
+    {
+        NetworkTree.ItemsSource = DefaultNetworks.GroupByCountry(_runtime.Document.Networks)
+            .Select(g => new CountryGroup { Country = g.Key, Networks = g.OrderBy(n => n.Name).ToList() })
+            .ToList();
+    }
+
+    private void NetworkTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+    {
+        if (e.NewValue is NetworkProfile profile)
         {
-            NetworkList.SelectedIndex = 0;
+            Flush();
+            ShowProfile(profile);
         }
     }
 
-    private void NetworkList_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    private void SelectNetwork(NetworkProfile? profile)
     {
-        Flush();
-        _current = NetworkList.SelectedItem as NetworkProfile;
-        if (_current is null)
+        if (profile is null)
         {
             return;
         }
 
-        var server = _current.PrimaryServer;
-        NameBox.Text = _current.Name;
+        ShowProfile(profile);
+    }
+
+    private void ShowProfile(NetworkProfile profile)
+    {
+        _current = profile;
+        var server = profile.PrimaryServer;
+        CountryBox.Text = profile.Country;
+        NameBox.Text = profile.Name;
         HostBox.Text = server.Host;
         PortBox.Text = server.Port.ToString();
         TlsBox.IsChecked = server.UseTls;
         BadCertBox.IsChecked = server.AcceptInvalidCertificates;
         ServerPassBox.Password = server.Password ?? "";
-        NickBox.Text = _current.NickOverride ?? "";
-        AutoJoinBox.Text = string.Join(", ", _current.AutoJoin);
-        SaslUserBox.Text = _current.SaslAccount ?? "";
-        SaslPassBox.Password = _current.SaslPassword ?? "";
-        NickServBox.Password = _current.NickServPassword ?? "";
+        NickBox.Text = profile.NickOverride ?? "";
+        AutoJoinBox.Text = string.Join(", ", profile.AutoJoin);
+        SaslUserBox.Text = profile.SaslAccount ?? "";
+        SaslPassBox.Password = profile.SaslPassword ?? "";
+        NickServBox.Password = profile.NickServPassword ?? "";
+        BackupBox.Text = string.Join(Environment.NewLine, profile.Servers.Skip(1).Select(FormatServer));
+        CommentBlock.Text = string.IsNullOrWhiteSpace(profile.Comment)
+            ? "Identity fields apply to all networks. Passwords are stored with Windows DPAPI."
+            : profile.Comment;
     }
+
+    private static string FormatServer(ServerEntry server) =>
+        server.Port is 6697 or 6667 ? server.Host + ":" + server.Port : $"{server.Host}:{server.Port}";
 
     private void Flush()
     {
@@ -60,17 +94,29 @@ public partial class NetworkWindow : Window
         }
 
         _current.Name = NameBox.Text.Trim();
-        if (_current.Servers.Count == 0)
+        _current.Country = string.IsNullOrWhiteSpace(CountryBox.Text) ? "Global" : CountryBox.Text.Trim();
+        var servers = new List<ServerEntry>
         {
-            _current.Servers.Add(new ServerEntry());
+            new()
+            {
+                Host = HostBox.Text.Trim(),
+                Port = int.TryParse(PortBox.Text, out var port) ? port : 6697,
+                UseTls = TlsBox.IsChecked == true,
+                AcceptInvalidCertificates = BadCertBox.IsChecked == true,
+                Password = string.IsNullOrEmpty(ServerPassBox.Password) ? null : ServerPassBox.Password
+            }
+        };
+
+        foreach (var line in BackupBox.Text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var parsed = ParseServerLine(line, TlsBox.IsChecked == true);
+            if (parsed is not null)
+            {
+                servers.Add(parsed);
+            }
         }
 
-        var server = _current.Servers[0];
-        server.Host = HostBox.Text.Trim();
-        server.Port = int.TryParse(PortBox.Text, out var port) ? port : 6697;
-        server.UseTls = TlsBox.IsChecked == true;
-        server.AcceptInvalidCertificates = BadCertBox.IsChecked == true;
-        server.Password = string.IsNullOrEmpty(ServerPassBox.Password) ? null : ServerPassBox.Password;
+        _current.Servers = servers;
         _current.NickOverride = string.IsNullOrWhiteSpace(NickBox.Text) ? null : NickBox.Text.Trim();
         _current.AutoJoin = AutoJoinBox.Text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
         _current.SaslAccount = string.IsNullOrWhiteSpace(SaslUserBox.Text) ? null : SaslUserBox.Text.Trim();
@@ -78,35 +124,61 @@ public partial class NetworkWindow : Window
         _current.NickServPassword = string.IsNullOrEmpty(NickServBox.Password) ? null : NickServBox.Password;
     }
 
+    private static ServerEntry? ParseServerLine(string line, bool defaultTls)
+    {
+        var parts = line.Split(':', 2, StringSplitOptions.TrimEntries);
+        if (parts[0].Length == 0)
+        {
+            return null;
+        }
+
+        var port = 6697;
+        if (parts.Length == 2)
+        {
+            int.TryParse(parts[1], out port);
+        }
+
+        return new ServerEntry
+        {
+            Host = parts[0],
+            Port = port <= 0 ? 6697 : port,
+            UseTls = defaultTls || port is 6697 or 9999 or 7000
+        };
+    }
+
     private void AddButton_Click(object sender, RoutedEventArgs e)
     {
         Flush();
+        var country = _current?.Country
+                      ?? (NetworkTree.SelectedItem as CountryGroup)?.Country
+                      ?? "United States";
         var profile = new NetworkProfile
         {
             Name = "New network",
+            Country = country,
             Servers = [new ServerEntry { Host = "irc.example.com", Port = 6697, UseTls = true }]
         };
         _runtime.AddNetwork(profile);
-        NetworkList.Items.Refresh();
-        NetworkList.SelectedItem = profile;
+        RebuildTree();
+        ShowProfile(profile);
     }
 
     private void RemoveButton_Click(object sender, RoutedEventArgs e)
     {
-        if (NetworkList.SelectedItem is not NetworkProfile profile)
+        if (NetworkTree.SelectedItem is not NetworkProfile profile)
         {
             return;
         }
 
         _runtime.RemoveNetwork(profile.Id);
         _current = null;
-        NetworkList.Items.Refresh();
+        RebuildTree();
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
         Flush();
-        NetworkList.Items.Refresh();
+        RebuildTree();
         _runtime.Save();
     }
 
@@ -114,7 +186,7 @@ public partial class NetworkWindow : Window
     {
         Flush();
         _runtime.Save();
-        ConnectTarget = _current ?? NetworkList.SelectedItem as NetworkProfile;
+        ConnectTarget = _current ?? NetworkTree.SelectedItem as NetworkProfile;
         DialogResult = ConnectTarget is not null;
         Close();
     }
