@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.ComponentModel;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -20,6 +21,7 @@ public partial class MainWindow : Window
     private int _historyIndex = -1;
     private IrcSession? _session;
     private IrcBuffer? _buffer;
+    private bool _editingTopic;
 
     public MainWindow() : this(new ClientRuntime())
     {
@@ -80,15 +82,91 @@ public partial class MainWindow : Window
 
     private void SelectBuffer(IrcSession session, IrcBuffer buffer)
     {
+        if (_buffer is not null)
+        {
+            _buffer.PropertyChanged -= OnBufferPropertyChanged;
+        }
+
         _session = session;
         _buffer = buffer;
+        _buffer.PropertyChanged += OnBufferPropertyChanged;
+        _editingTopic = false;
         Chat.Show(buffer);
         NickList.ItemsSource = buffer.Nicks;
-        NickHeader.Text = buffer.Kind == BufferKind.Channel ? $"Nicks ({buffer.UserCount})" : "Nicks";
-        TopicBar.Text = buffer.Topic ?? buffer.Name;
         Title = $"{buffer.Name} — PureFusionIRC";
         InputPrompt.Text = buffer.Kind == BufferKind.Channel ? buffer.Name : ">";
+        RefreshPinnedBars();
         RefreshStatus();
+    }
+
+    private void OnBufferPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(IrcBuffer.Topic) or nameof(IrcBuffer.UserCount) or nameof(IrcBuffer.Nicks))
+        {
+            RefreshPinnedBars();
+            RefreshStatus();
+        }
+    }
+
+    private void RefreshPinnedBars()
+    {
+        if (_buffer is null)
+        {
+            TopicChannelLabel.Text = "";
+            TopicBar.Text = "";
+            TopicBar.IsReadOnly = true;
+            NickHeader.Text = "Nicks";
+            return;
+        }
+
+        TopicChannelLabel.Text = _buffer.Kind == BufferKind.Channel ? _buffer.Name : "";
+        TopicBar.IsReadOnly = _buffer.Kind != BufferKind.Channel;
+        if (!_editingTopic)
+        {
+            TopicBar.Text = _buffer.Kind == BufferKind.Channel
+                ? _buffer.Topic ?? string.Empty
+                : _buffer.Kind == BufferKind.Query
+                    ? "Query with " + _buffer.Name
+                    : (_session?.Network.Name ?? "Server");
+        }
+
+        NickHeader.Text = _buffer.Kind == BufferKind.Channel ? $"Nicks ({_buffer.UserCount})" : "Nicks";
+    }
+
+    private void TopicBar_GotFocus(object sender, RoutedEventArgs e) => _editingTopic = true;
+
+    private void TopicBar_LostFocus(object sender, RoutedEventArgs e)
+    {
+        _editingTopic = false;
+        RefreshPinnedBars();
+    }
+
+    private async void TopicBar_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (_session is null || _buffer is null || _buffer.Kind != BufferKind.Channel)
+        {
+            return;
+        }
+
+        if (e.Key == Key.Escape)
+        {
+            _editingTopic = false;
+            RefreshPinnedBars();
+            InputBox.Focus();
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key != Key.Enter)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        var topic = TopicBar.Text;
+        _editingTopic = false;
+        await _session.Commands.ExecuteAsync(_session, _buffer, "/topic " + topic).ConfigureAwait(true);
+        InputBox.Focus();
     }
 
     private void ApplyTheme(ThemeDefinition theme)
