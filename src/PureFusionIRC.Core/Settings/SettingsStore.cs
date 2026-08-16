@@ -10,36 +10,6 @@ public sealed class SettingsDocument
     public List<NetworkProfile> Networks { get; set; } = DefaultNetworks.Create();
 }
 
-public static class DefaultNetworks
-{
-    public static List<NetworkProfile> Create() =>
-    [
-        Net("Libera Chat", "irc.libera.chat", 6697),
-        Net("OFTC", "irc.oftc.net", 6697),
-        Net("Rizon", "irc.rizon.net", 6697),
-        Net("libera (plaintext)", "irc.libera.chat", 6667, tls: false).AlsoDisabled(),
-        Net("Undernet", "irc.undernet.org", 6667, tls: false),
-        Net("DALnet", "irc.dal.net", 6697),
-        Net("EFnet", "irc.efnet.org", 6697),
-        Net("QuakeNet", "irc.quakenet.org", 6697),
-        Net("IRCnet", "open.ircnet.net", 6667, tls: false),
-        Net("Snoonet", "irc.snoonet.org", 6697)
-    ];
-
-    private static NetworkProfile Net(string name, string host, int port, bool tls = true) =>
-        new()
-        {
-            Name = name,
-            Servers = [new ServerEntry { Host = host, Port = port, UseTls = tls }]
-        };
-
-    private static NetworkProfile AlsoDisabled(this NetworkProfile profile)
-    {
-        profile.Enabled = false;
-        return profile;
-    }
-}
-
 public sealed class SettingsStore
 {
     public static readonly JsonSerializerOptions JsonOptions = new()
@@ -100,6 +70,13 @@ public sealed class SettingsStore
 
         document.App = SecretStore.UnprotectSettings(document.App);
         document.Networks = document.Networks.Select(SecretStore.UnprotectNetwork).ToList();
+        if (document.App.NetworkListRevision < DefaultNetworks.Revision)
+        {
+            DefaultNetworks.MergeInto(document.Networks);
+            document.App.NetworkListRevision = DefaultNetworks.Revision;
+            Save(document);
+        }
+
         return document;
     }
 

@@ -30,6 +30,8 @@ public sealed class NetworkProfile
     public string? SaslAccount { get; set; }
     public string? SaslPassword { get; set; }
     public string? NickServPassword { get; set; }
+    public string Country { get; set; } = "Global";
+    public string? Comment { get; set; }
     public bool ConnectOnStartup { get; set; }
     public bool Enabled { get; set; } = true;
 
@@ -58,4 +60,6 @@ public sealed class AppSettings
     public int MaxBufferLines { get; set; } = 5000;
     public List<string> HighlightWords { get; set; } = new();
     public bool ShowMotd { get; set; } = true;
+    /// <summary>Bumped when built-in country server lists change so AppData picks up new entries.</summary>
+    public int NetworkListRevision { get; set; }
 }

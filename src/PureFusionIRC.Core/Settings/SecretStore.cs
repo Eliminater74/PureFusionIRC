@@ -97,6 +97,8 @@ public static class SecretStore
     {
         Id = network.Id,
         Name = network.Name,
+        Country = network.Country,
+        Comment = network.Comment,
         AutoJoin = [.. network.AutoJoin],
         NickOverride = network.NickOverride,
         SaslAccount = network.SaslAccount,
