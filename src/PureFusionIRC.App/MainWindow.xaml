@@ -107,7 +107,14 @@
                 <TextBlock DockPanel.Dock="Top" Text="Servers / channels" Margin="8,6,8,4"
                            Foreground="{DynamicResource DimTextBrush}" FontSize="11"/>
                 <TreeView x:Name="BufferTree" SelectedItemChanged="BufferTree_SelectedItemChanged"
-                          BorderThickness="0" Padding="4"/>
+                          BorderThickness="0" Padding="4">
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="TreeViewItem">
+                            <Setter Property="IsExpanded" Value="True"/>
+                            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                </TreeView>
             </DockPanel>
             <GridSplitter Grid.Row="0" Grid.Column="1" Width="4" HorizontalAlignment="Stretch"
                           Background="{DynamicResource BorderBrushKey}"/>
