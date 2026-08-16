@@ -48,6 +48,11 @@ public sealed partial class IrcSession : IAsyncDisposable
     private bool _saslDone;
     private long _lagSentUnixMs;
     private int _nickTries;
+    private int _serverIndex;
+    private int _reconnectBusy;
+    private CancellationTokenSource? _reconnectCts;
+    private readonly List<string> _restoreJoins = new();
+    private bool _gotWelcome;
 
     public bool UserRequestedDisconnect { get; private set; }
 
@@ -79,6 +84,25 @@ public sealed partial class IrcSession : IAsyncDisposable
     public TimeSpan Lag { get; private set; }
     public string? UserModes { get; private set; }
     public string? NetworkName => ISupport.GetValueOrDefault("NETWORK") ?? Network.Name;
+
+    public ServerEntry CurrentServer
+    {
+        get
+        {
+            if (Network.Servers.Count == 0)
+            {
+                return new ServerEntry();
+            }
+
+            var index = _serverIndex % Network.Servers.Count;
+            if (index < 0)
+            {
+                index += Network.Servers.Count;
+            }
+
+            return Network.Servers[index];
+        }
+    }
     public IReadOnlyList<string> RequestedCapabilities { get; private set; } = Array.Empty<string>();
 
     public event EventHandler? StateChanged;
@@ -154,9 +178,15 @@ public sealed partial class IrcSession : IAsyncDisposable
             return;
         }
 
-        var server = Network.PrimaryServer;
+        var server = CurrentServer;
         var endpoint = new IrcEndpoint(server.Host, server.Port, server.UseTls, server.AcceptInvalidCertificates);
         UserRequestedDisconnect = false;
+        _gotWelcome = false;
+        if (Network.Servers.Count > 0)
+        {
+            _serverIndex = Math.Clamp(_serverIndex, 0, Network.Servers.Count - 1);
+        }
+
         SetState(SessionState.Connecting);
         Print(ServerBuffer, ChatLineKind.Info, "Connecting to " + endpoint + " …");
 
@@ -196,6 +226,7 @@ public sealed partial class IrcSession : IAsyncDisposable
     public async Task DisconnectAsync(CancellationToken cancellationToken = default)
     {
         UserRequestedDisconnect = true;
+        _reconnectCts?.Cancel();
         SetState(SessionState.Disconnecting);
         if (_runCts is not null)
         {
@@ -220,7 +251,9 @@ public sealed partial class IrcSession : IAsyncDisposable
 
     public async Task ReconnectAsync(CancellationToken cancellationToken = default)
     {
+        CaptureJoinedChannels();
         await DisconnectAsync(cancellationToken).ConfigureAwait(false);
+        UserRequestedDisconnect = false;
         await ConnectAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -292,28 +325,80 @@ public sealed partial class IrcSession : IAsyncDisposable
 
             if (dropped && Settings.Reconnect)
             {
-                Print(ServerBuffer, ChatLineKind.Info,
-                    $"Disconnected. Reconnecting in {Math.Max(2, Settings.ReconnectDelaySeconds)} seconds…");
-                _ = ReconnectLaterAsync();
+                CaptureJoinedChannels();
+                var delay = Math.Max(2, Settings.ReconnectDelaySeconds);
+                Print(ServerBuffer, ChatLineKind.Info, _gotWelcome
+                    ? $"Server closed the link. Rejoining {(_restoreJoins.Count == 0 ? "auto-join channels" : _restoreJoins.Count + " channel(s)")} on {CurrentServer.Host} in {delay} seconds…"
+                    : $"Disconnected before login. Retrying {CurrentServer.Host} in {delay} seconds…");
+                ScheduleReconnect();
             }
         }
     }
 
-    private async Task ReconnectLaterAsync()
+    private void CaptureJoinedChannels()
+    {
+        var open = Buffers.Where(b => b.Kind == BufferKind.Channel).Select(b => b.Name).ToList();
+        var targets = Network.JoinTargets(open);
+        _restoreJoins.Clear();
+        _restoreJoins.AddRange(targets);
+    }
+
+    private void ScheduleReconnect()
+    {
+        if (UserRequestedDisconnect || !Settings.Reconnect)
+        {
+            return;
+        }
+
+        if (Interlocked.CompareExchange(ref _reconnectBusy, 1, 0) != 0)
+        {
+            return;
+        }
+
+        _reconnectCts?.Dispose();
+        _reconnectCts = new CancellationTokenSource();
+        _ = ReconnectLaterAsync(_reconnectCts.Token);
+    }
+
+    private async Task ReconnectLaterAsync(CancellationToken cancellationToken)
     {
         try
         {
-            await Task.Delay(TimeSpan.FromSeconds(Math.Max(2, Settings.ReconnectDelaySeconds))).ConfigureAwait(false);
-            if (UserRequestedDisconnect)
+            while (!UserRequestedDisconnect && Settings.Reconnect)
             {
-                return;
-            }
+                try
+                {
+                    await Task.Delay(
+                            TimeSpan.FromSeconds(Math.Max(2, Settings.ReconnectDelaySeconds)),
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
 
-            await ConnectAsync().ConfigureAwait(false);
+                if (UserRequestedDisconnect || State is SessionState.Connecting or SessionState.Registering or SessionState.Connected)
+                {
+                    return;
+                }
+
+                Print(ServerBuffer, ChatLineKind.Info, "Reconnecting to " + CurrentServer.Host + " …");
+                try
+                {
+                    await ConnectAsync().ConfigureAwait(false);
+                    return;
+                }
+                catch (Exception ex) when (ex is SocketException or IOException or TimeoutException or AuthenticationException)
+                {
+                    Print(ServerBuffer, ChatLineKind.Error,
+                        "Reconnect failed: " + ex.Message + " — trying again.");
+                }
+            }
         }
-        catch (Exception ex)
+        finally
         {
-            Print(ServerBuffer, ChatLineKind.Error, "Reconnect failed: " + ex.Message);
+            Interlocked.Exchange(ref _reconnectBusy, 0);
         }
     }
 

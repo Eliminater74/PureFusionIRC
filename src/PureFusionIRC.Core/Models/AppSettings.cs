@@ -69,6 +69,50 @@ public sealed class NetworkProfile
         return false;
     }
 
+    /// <summary>
+    /// Channels to JOIN after reconnect: rooms still open, plus any saved auto-join (keys preserved).
+    /// </summary>
+    public IReadOnlyList<string> JoinTargets(IEnumerable<string> currentlyJoined)
+    {
+        var result = new List<string>();
+        foreach (var name in currentlyJoined)
+        {
+            AddJoinSpec(result, SpecForChannel(name));
+        }
+
+        foreach (var entry in AutoJoin)
+        {
+            AddJoinSpec(result, entry);
+        }
+
+        return result;
+    }
+
+    private string SpecForChannel(string channel)
+    {
+        var token = NormalizeAutoJoinName(channel);
+        var saved = AutoJoin.FirstOrDefault(entry =>
+            string.Equals(NormalizeAutoJoinName(entry), token, StringComparison.OrdinalIgnoreCase));
+        return string.IsNullOrEmpty(saved) ? token : saved;
+    }
+
+    private static void AddJoinSpec(List<string> result, string spec)
+    {
+        var token = NormalizeAutoJoinName(spec);
+        if (token.Length == 0)
+        {
+            return;
+        }
+
+        if (result.Any(existing =>
+                string.Equals(NormalizeAutoJoinName(existing), token, StringComparison.OrdinalIgnoreCase)))
+        {
+            return;
+        }
+
+        result.Add(spec.Trim());
+    }
+
     public static string AutoJoinChannelName(string entry)
     {
         if (string.IsNullOrWhiteSpace(entry))

@@ -26,4 +26,12 @@ public sealed class NetworkProfileTests
         Assert.False(network.SetAutoJoin("#secret", false));
         Assert.Empty(network.AutoJoin);
     }
+
+    [Fact]
+    public void JoinTargets_keeps_open_channels_and_autojoin_keys()
+    {
+        var network = new NetworkProfile { AutoJoin = ["#secret hunter2", "#lobby"] };
+        var joins = network.JoinTargets(["#secret", "#live"]);
+        Assert.Equal(["#secret hunter2", "#live", "#lobby"], joins);
+    }
 }

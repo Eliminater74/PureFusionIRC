@@ -57,6 +57,7 @@ public sealed partial class IrcSession
                 return;
             case IrcNumerics.Welcome:
                 CurrentNick = message[0] ?? CurrentNick;
+                _gotWelcome = true;
                 SetState(SessionState.Connected);
                 Print(ServerBuffer, ChatLineKind.Server, message.Trailing ?? string.Empty);
                 await AfterWelcomeAsync(cancellationToken).ConfigureAwait(false);
@@ -673,7 +674,13 @@ public sealed partial class IrcSession
                 .ConfigureAwait(false);
         }
 
-        foreach (var channel in Network.AutoJoin)
+        var joins = _restoreJoins.Count > 0 ? _restoreJoins : Network.AutoJoin;
+        if (joins.Count > 0)
+        {
+            Print(ServerBuffer, ChatLineKind.Info, "Joining " + string.Join(", ", joins));
+        }
+
+        foreach (var channel in joins)
         {
             if (!string.IsNullOrWhiteSpace(channel))
             {
