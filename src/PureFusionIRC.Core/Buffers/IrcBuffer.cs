@@ -141,6 +141,7 @@ public sealed class IrcBuffer : INotifyPropertyChanged
         }
 
         UserCount = Nicks.Count;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(UserCount)));
     }
 
     private static string NickSort(NickEntry entry)

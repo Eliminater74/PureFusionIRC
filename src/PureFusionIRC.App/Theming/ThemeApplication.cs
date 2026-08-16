@@ -33,6 +33,12 @@ public static class ThemeApplication
         Set(resources, "QueryBrush", theme.Ui.Query);
         Set(resources, "UnreadBrush", theme.Ui.Unread);
         Set(resources, "MentionBrush", theme.Ui.Mention);
+        Set(resources, "NickOwnerBrush", theme.Ui.NickOwner);
+        Set(resources, "NickAdminBrush", theme.Ui.NickAdmin);
+        Set(resources, "NickOpBrush", theme.Ui.NickOp);
+        Set(resources, "NickHalfopBrush", theme.Ui.NickHalfop);
+        Set(resources, "NickVoiceBrush", theme.Ui.NickVoice);
+        Set(resources, "NickRegularBrush", theme.Ui.NickRegular);
 
         resources["ThemeFontFamily"] = new FontFamily("Consolas");
         resources["IsDarkTheme"] = theme.IsDark;

@@ -28,6 +28,12 @@
         <SolidColorBrush x:Key="QueryBrush" Color="#81D4FA"/>
         <SolidColorBrush x:Key="UnreadBrush" Color="#81C784"/>
         <SolidColorBrush x:Key="MentionBrush" Color="#FFCC80"/>
+        <SolidColorBrush x:Key="NickOwnerBrush" Color="#E8C547"/>
+        <SolidColorBrush x:Key="NickAdminBrush" Color="#EF9A9A"/>
+        <SolidColorBrush x:Key="NickOpBrush" Color="#FF6B6B"/>
+        <SolidColorBrush x:Key="NickHalfopBrush" Color="#FFB74D"/>
+        <SolidColorBrush x:Key="NickVoiceBrush" Color="#64B5F6"/>
+        <SolidColorBrush x:Key="NickRegularBrush" Color="#F5F5F5"/>
         <FontFamily x:Key="ThemeFontFamily">Consolas</FontFamily>
 
         <Style TargetType="Window">

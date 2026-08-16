@@ -4,11 +4,13 @@
         xmlns:chat="clr-namespace:PureFusionIRC.App.Chat"
         xmlns:irc="clr-namespace:PureFusionIRC.Core.Irc;assembly=PureFusionIRC.Core"
         xmlns:buf="clr-namespace:PureFusionIRC.Core.Buffers;assembly=PureFusionIRC.Core"
+        xmlns:theming="clr-namespace:PureFusionIRC.App.Theming"
         Title="PureFusionIRC"
         Height="720" Width="1180"
         MinHeight="480" MinWidth="800"
         Background="{DynamicResource WindowBackgroundBrush}">
     <Window.Resources>
+        <theming:NickRankBrushConverter x:Key="NickRankBrush"/>
         <HierarchicalDataTemplate DataType="{x:Type irc:IrcSession}" ItemsSource="{Binding Buffers}">
             <TextBlock Text="{Binding Network.Name}" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold"/>
         </HierarchicalDataTemplate>
@@ -174,7 +176,10 @@
                     </ListBox.ContextMenu>
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Display}" Foreground="{DynamicResource PrimaryTextBrush}" FontFamily="Consolas"/>
+                            <TextBlock FontFamily="Consolas">
+                                <Run Text="{Binding Prefixes, Mode=OneWay}" Foreground="{Binding HighestPrefix, Converter={StaticResource NickRankBrush}}"/>
+                                <Run Text="{Binding Nick, Mode=OneWay}" Foreground="{Binding HighestPrefix, Converter={StaticResource NickRankBrush}}"/>
+                            </TextBlock>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>

@@ -31,6 +31,12 @@ public sealed class ThemeUiColors
     public string Query { get; set; } = "#81D4FA";
     public string Unread { get; set; } = "#81C784";
     public string Mention { get; set; } = "#FFCC80";
+    public string NickOwner { get; set; } = "#E8C547";
+    public string NickAdmin { get; set; } = "#EF9A9A";
+    public string NickOp { get; set; } = "#FF6B6B";
+    public string NickHalfop { get; set; } = "#FFB74D";
+    public string NickVoice { get; set; } = "#64B5F6";
+    public string NickRegular { get; set; } = "#F5F5F5";
 }
 
 public sealed class ThemeDefinition
@@ -108,7 +114,13 @@ public static class BuiltInThemes
             Channel = "#F9A825",
             Query = "#0277BD",
             Unread = "#2E7D32",
-            Mention = "#EF6C00"
+            Mention = "#EF6C00",
+            NickOwner = "#F9A825",
+            NickAdmin = "#C62828",
+            NickOp = "#B71C1C",
+            NickHalfop = "#EF6C00",
+            NickVoice = "#1565C0",
+            NickRegular = "#1A1A1A"
         },
         Palette = MircPalette.Classic
     };
@@ -137,7 +149,13 @@ public static class BuiltInThemes
             Highlight = "#FFAB91",
             SelfNick = "#80CBC4",
             OtherNick = "#90CAF9",
-            Action = "#CE93D8"
+            Action = "#CE93D8",
+            NickOwner = "#FFD54F",
+            NickAdmin = "#EF9A9A",
+            NickOp = "#EF5350",
+            NickHalfop = "#FFB74D",
+            NickVoice = "#64B5F6",
+            NickRegular = "#EEEEEE"
         },
         Palette = MircPalette.Classic
     };

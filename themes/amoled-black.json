@@ -28,6 +28,12 @@
     "channel": "#FFE082",
     "query": "#81D4FA",
     "unread": "#81C784",
-    "mention": "#FFCC80"
+    "mention": "#FFCC80",
+    "nickOwner": "#E8C547",
+    "nickAdmin": "#EF9A9A",
+    "nickOp": "#FF6B6B",
+    "nickHalfop": "#FFB74D",
+    "nickVoice": "#64B5F6",
+    "nickRegular": "#F5F5F5"
   }
 }
