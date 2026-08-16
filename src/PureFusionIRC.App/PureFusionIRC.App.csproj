@@ -4,6 +4,9 @@
     <ProjectReference Include="..\PureFusionIRC.Core\PureFusionIRC.Core.csproj" />
     <Resource Include="Assets\PureFusionIRC.ico" />
     <Resource Include="Assets\PureFusionIRC.png" />
+    <!-- Keep WPF names (Application, Color, KeyEventArgs) unambiguous; tray uses explicit WinForms usings. -->
+    <Using Remove="System.Drawing" />
+    <Using Remove="System.Windows.Forms" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -12,6 +15,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Assets\PureFusionIRC.ico</ApplicationIcon>
     <AssemblyName>PureFusionIRC</AssemblyName>
     <RootNamespace>PureFusionIRC.App</RootNamespace>

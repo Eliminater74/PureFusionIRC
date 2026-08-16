@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Win32;
 using PureFusionIRC.App.Theming;
+using PureFusionIRC.App.Tray;
 using PureFusionIRC.App.Windows;
 using PureFusionIRC.Core;
 using PureFusionIRC.Core.Buffers;
@@ -22,6 +23,10 @@ public partial class MainWindow : Window
     private IrcSession? _session;
     private IrcBuffer? _buffer;
     private bool _editingTopic;
+    private bool _exitRequested;
+    private TrayController? _tray;
+
+    public AppSettings Settings => _runtime.Document.App;
 
     public MainWindow() : this(new ClientRuntime())
     {
@@ -41,13 +46,22 @@ public partial class MainWindow : Window
         ApplyLayoutFlags();
         _runtime.ThemeChanged += (_, _) => Dispatcher.Invoke(() => ApplyTheme(_runtime.Theme));
         _runtime.SessionAdded += (_, session) => Dispatcher.Invoke(() => HookSession(session));
-        Loaded += MainWindow_Loaded;
-        Closing += (_, _) =>
+        _tray = new TrayController(
+            () => Dispatcher.Invoke(RestoreFromTray),
+            () => Dispatcher.Invoke(() => Networks_Click(this, new RoutedEventArgs())),
+            () => Dispatcher.Invoke(ExitFromTray));
+        StateChanged += (_, _) =>
         {
-            _runtime.Save();
-            _ = _runtime.DisposeAsync().AsTask();
+            if (WindowState == WindowState.Minimized && Settings.MinimizeToTray)
+            {
+                HideToTray();
+            }
         };
+        Loaded += MainWindow_Loaded;
+        Closing += MainWindow_Closing;
     }
+
+    public void OpenNetworks() => Networks_Click(this, new RoutedEventArgs());
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
@@ -71,9 +85,28 @@ public partial class MainWindow : Window
                 Chat.Append(e.Buffer, e.Line);
             }
 
+            if (Settings.TrayNotifications)
+            {
+                var watchingThisBuffer = IsVisible && IsActive && WindowState != WindowState.Minimized
+                    && ReferenceEquals(_buffer, e.Buffer);
+                _tray?.NotifyChat(e.Buffer, e.Line, watchingThisBuffer);
+            }
+
             RefreshStatus();
         });
-        session.StateChanged += (_, _) => Dispatcher.Invoke(RefreshStatus);
+        session.StateChanged += (_, _) => Dispatcher.Invoke(() =>
+        {
+            RefreshStatus();
+            if (session.State == SessionState.Disconnected &&
+                !session.UserRequestedDisconnect &&
+                Settings.TrayNotifications)
+            {
+                _tray?.Notify(
+                    "Disconnected",
+                    session.Network.Name + " dropped.",
+                    IsVisible && IsActive && WindowState != WindowState.Minimized);
+            }
+        });
         session.BufferOpened += (_, buffer) => Dispatcher.Invoke(() =>
         {
             SelectBuffer(session, buffer);
@@ -241,7 +274,47 @@ public partial class MainWindow : Window
         }
     }
 
-    private void Exit_Click(object sender, RoutedEventArgs e) => Close();
+    private void Exit_Click(object sender, RoutedEventArgs e) => ExitFromTray();
+
+    private void HideToTray()
+    {
+        Hide();
+        ShowInTaskbar = false;
+    }
+
+    private void RestoreFromTray()
+    {
+        Show();
+        ShowInTaskbar = true;
+        if (WindowState == WindowState.Minimized)
+        {
+            WindowState = WindowState.Normal;
+        }
+
+        Activate();
+        Topmost = true;
+        Topmost = false;
+    }
+
+    private void ExitFromTray()
+    {
+        _exitRequested = true;
+        Close();
+    }
+
+    private void MainWindow_Closing(object? sender, CancelEventArgs e)
+    {
+        if (!_exitRequested && Settings.CloseToTray)
+        {
+            e.Cancel = true;
+            HideToTray();
+            return;
+        }
+
+        _tray?.Dispose();
+        _runtime.Save();
+        _ = _runtime.DisposeAsync().AsTask();
+    }
 
     private void ToggleTree_Click(object sender, RoutedEventArgs e)
     {

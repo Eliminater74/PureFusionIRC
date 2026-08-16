@@ -46,9 +46,10 @@ public sealed partial class IrcSession : IAsyncDisposable
     private readonly List<string> _pendingCaps = new();
     private bool _capEnded;
     private bool _saslDone;
-    private bool _userDisconnect;
     private long _lagSentUnixMs;
     private int _nickTries;
+
+    public bool UserRequestedDisconnect { get; private set; }
 
     public IrcSession(string id, NetworkProfile network, UserIdentity identity, AppSettings settings, ThemeDefinition theme)
     {
@@ -152,7 +153,7 @@ public sealed partial class IrcSession : IAsyncDisposable
 
         var server = Network.PrimaryServer;
         var endpoint = new IrcEndpoint(server.Host, server.Port, server.UseTls, server.AcceptInvalidCertificates);
-        _userDisconnect = false;
+        UserRequestedDisconnect = false;
         SetState(SessionState.Connecting);
         Print(ServerBuffer, ChatLineKind.Info, "Connecting to " + endpoint + " …");
 
@@ -191,7 +192,7 @@ public sealed partial class IrcSession : IAsyncDisposable
 
     public async Task DisconnectAsync(CancellationToken cancellationToken = default)
     {
-        _userDisconnect = true;
+        UserRequestedDisconnect = true;
         SetState(SessionState.Disconnecting);
         if (_runCts is not null)
         {
@@ -280,7 +281,7 @@ public sealed partial class IrcSession : IAsyncDisposable
         }
         finally
         {
-            var dropped = State != SessionState.Disconnecting && !_userDisconnect;
+            var dropped = State != SessionState.Disconnecting && !UserRequestedDisconnect;
             if (State != SessionState.Disconnecting)
             {
                 SetState(SessionState.Disconnected);
@@ -300,7 +301,7 @@ public sealed partial class IrcSession : IAsyncDisposable
         try
         {
             await Task.Delay(TimeSpan.FromSeconds(Math.Max(2, Settings.ReconnectDelaySeconds))).ConfigureAwait(false);
-            if (_userDisconnect)
+            if (UserRequestedDisconnect)
             {
                 return;
             }
